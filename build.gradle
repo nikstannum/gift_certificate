@@ -10,6 +10,15 @@ repositories {
 }
 
 dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'com.zaxxer:HikariCP:5.0.1'
+
+    implementation 'org.springframework:spring-context:6.0.6'
+    implementation 'org.springframework:spring-jdbc:6.0.6'
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 }
