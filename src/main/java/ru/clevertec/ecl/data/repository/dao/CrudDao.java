@@ -1,9 +1,14 @@
-package ru.clevertec.ecl.data.repository;
+package ru.clevertec.ecl.data.repository.dao;
 
 import java.util.List;
-import ru.clevertec.ecl.data.entity.QueryParams;
 
-public interface CrudRepository<T, K> {
+public interface CrudDao<T, K> {
+    /**
+     * serializes an object to the database
+     *
+     * @param entity the serializable object
+     * @return the same object from the database
+     */
     T create(T entity);
 
     /**
@@ -19,7 +24,7 @@ public interface CrudRepository<T, K> {
      *
      * @return serialized list of objects
      */
-    List<T> find(QueryParams queryParams);
+    List<T> find(String query);
 
     /**
      * updates an object in the database

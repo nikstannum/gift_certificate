@@ -19,6 +19,8 @@ public class ContextConfig {
         dataSource.setJdbcUrl(configurationManager.getProperty("db.url"));
         dataSource.setPassword(configurationManager.getProperty("db.password"));
         dataSource.setUsername(configurationManager.getProperty("db.user"));
+        dataSource.setMaximumPoolSize(Integer.parseInt(configurationManager.getProperty("db.pool_size")));
+        dataSource.setDriverClassName(configurationManager.getProperty("db.driver"));
         return dataSource;
     }
 
@@ -26,4 +28,5 @@ public class ContextConfig {
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate() {
         return new NamedParameterJdbcTemplate(dataSource());
     }
+
 }
