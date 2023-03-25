@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.data.entity.GiftCertificate;
 import ru.clevertec.ecl.data.entity.QueryParams;
 import ru.clevertec.ecl.data.entity.Tag;
@@ -58,6 +59,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
+    @Transactional
     public GiftCertificateDto create(QueryParamsDto paramsDto) {
         QueryParams params = mapper.convert(paramsDto);
         GiftCertificate created = giftCertificateRepository.createByParams(params);
@@ -72,6 +74,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
+    @Transactional
     public GiftCertificateDto update(QueryParamsDto paramsDto, Long id) {
         List<Tag> existingTags = giftCertificateRepository.findTagsByCertificateId(id);
         String acceptedTagsParams = paramsDto.getTag();
@@ -121,6 +124,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         giftCertificateRepository.delete(id);
     }

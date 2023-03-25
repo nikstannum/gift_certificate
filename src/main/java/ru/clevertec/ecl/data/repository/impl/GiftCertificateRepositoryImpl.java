@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.data.entity.GiftCertificate;
 import ru.clevertec.ecl.data.entity.QueryParams;
 import ru.clevertec.ecl.data.entity.Tag;

@@ -52,7 +52,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     private static final String PARAM_LIMIT = "limit";
     private static final String PARAM_OFFSET = "offset";
     private static final String EXC_MSG_CREATE = "couldn't create new gift certificate";
-    private static final String EXC_MSG_CREATE_CERT_TAG = "couldn't create new entry";
+    private static final String EXC_MSG_CREATE_CERT_TAG = "couldn't create new certificate-tag entry";
     private static final String EXC_MSG_NOT_FOUND_ID = "wasn't found certificate with id = ";
     private static final String EXC_MSG_UPDATE = "couldn't update certificate with id = ";
     private static final String EXC_MSG_DELETE = "couldn't delete certificate with id = ";
@@ -66,7 +66,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
                 .addValue(PARAM_TAG_ID, tagId);
         int rowUpd = template.update(CREATE_CERT_TAG_ENTRY, params);
         if (rowUpd == 0) {
-            throw new RuntimeException(EXC_MSG_CREATE_CERT_TAG);
+            throw new ClevertecException(EXC_MSG_CREATE_CERT_TAG, "50031");
         }
     }
 
@@ -76,7 +76,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         params.addValue(PARAM_ID, id);
         int rowUpdate = template.update(query, params);
         if (rowUpdate == 0) {
-            throw new RuntimeException(EXC_MSG_UPDATE + id);
+            throw new ClevertecException(EXC_MSG_UPDATE + id, "40013");
         }
         return findById(id);
     }
@@ -117,7 +117,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         template.update(query, new MapSqlParameterSource(), keyHolder, new String[]{COL_ID});
         Number key = keyHolder.getKey();
         if (key == null) {
-            throw new ClevertecException(EXC_MSG_CREATE);
+            throw new ClevertecException(EXC_MSG_CREATE, "50011");
         }
         Long id = key.longValue();
         return findById(id);
@@ -131,7 +131,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         try {
             return template.queryForObject(FIND_BY_ID, params, this::mapRowCertificate);
         } catch (IncorrectResultSizeDataAccessException e) {
-            throw new NotFoundException(EXC_MSG_NOT_FOUND_ID + id, e);
+            throw new NotFoundException(EXC_MSG_NOT_FOUND_ID + id, e, "40412");
         }
     }
 
@@ -145,7 +145,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
                 .addValue(PARAM_ID, entity.getId());
         int rowUpdated = template.update(UPDATE, params);
         if (rowUpdated == 0) {
-            throw new ClientException(EXC_MSG_UPDATE + entity.getId());
+            throw new ClientException(EXC_MSG_UPDATE + entity.getId(), "40013");
         }
         return findById(entity.getId());
     }
@@ -155,7 +155,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         Map<String, Object> params = new HashMap<>();
         params.put(PARAM_ID, id);
         if (template.update(DELETE, params) != 1) {
-            throw new ClientException(EXC_MSG_DELETE + id);
+            throw new ClientException(EXC_MSG_DELETE + id, "40014");
         }
     }
 
@@ -163,7 +163,10 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     public void deleteCertificateTagByCertificateId(Long id) {
         Map<String, Object> params = new HashMap<>();
         params.put(PARAM_ID, id);
-        template.update(DELETE_CERT_TAG_BY_CERT_ID, params);
+        int rowNum = template.update(DELETE_CERT_TAG_BY_CERT_ID, params);
+        if (rowNum != 1) {
+            throw new ClevertecException(EXC_MSG_DELETE + id, "50034");
+        }
 
     }
 
@@ -196,7 +199,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         template.update(INSERT, params, keyHolder, new String[]{COL_ID});
         Number key = keyHolder.getKey();
         if (key == null) {
-            throw new ClevertecException(EXC_MSG_CREATE);
+            throw new ClevertecException(EXC_MSG_CREATE, "50011");
         }
         Long id = key.longValue();
         return findById(id);

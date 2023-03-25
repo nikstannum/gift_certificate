@@ -6,7 +6,8 @@
         </property>
     </Properties>
     <Appenders>
-        <RollingFile name="TxtFile" fileName="logs/log.txt" filePattern="${date:dd-MM-yyyy}/%d{mm-HH}_%i.txt"
+        <RollingFile name="TxtFile" fileName="c:/Users/myASUS/eclipse-workspace/gift_certificate/logs/log.txt"
+                     filePattern="${date:dd-MM-yyyy}/%d{mm-HH}_%i.txt"
                      append="true" bufferedIO="true" bufferSize="1024">
             <PatternLayout pattern="${pattern_file}"/>
             <Policies>

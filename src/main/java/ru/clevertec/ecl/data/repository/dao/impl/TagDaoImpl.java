@@ -67,7 +67,7 @@ public class TagDaoImpl implements TagDao {
         template.update(INSERT, params, keyHolder, new String[]{COL_ID});
         Number key = keyHolder.getKey();
         if (key == null) {
-            throw new ClevertecException(EXC_MSG_CREATE);
+            throw new ClevertecException(EXC_MSG_CREATE, "50021");
         }
         Long id = key.longValue();
         return findById(id);
@@ -80,7 +80,7 @@ public class TagDaoImpl implements TagDao {
         try {
             return template.queryForObject(FIND_BY_ID, params, this::mapRow);
         } catch (IncorrectResultSizeDataAccessException e) {
-            throw new NotFoundException(EXC_MSG_NOT_FOUND + id, e);
+            throw new NotFoundException(EXC_MSG_NOT_FOUND + id, e, "40422");
         }
     }
 
@@ -95,7 +95,7 @@ public class TagDaoImpl implements TagDao {
         params.addValue(COL_NAME, entity.getName()).addValue(PARAM_ID, entity.getId());
         int rowUpdated = template.update(UPDATE, params);
         if (rowUpdated == 0) {
-            throw new ClientException(EXC_MSG_UPDATE + entity.getId());
+            throw new ClientException(EXC_MSG_UPDATE + entity.getId(), "40023");
         }
         return findById(entity.getId());
     }
@@ -105,7 +105,7 @@ public class TagDaoImpl implements TagDao {
         Map<String, Object> params = new HashMap<>();
         params.put(PARAM_ID, id);
         if (template.update(DELETE, params) == 1) {
-            throw new ClientException(EXC_MSG_DELETE + id);
+            throw new ClientException(EXC_MSG_DELETE + id, "40024");
         }
     }
 
