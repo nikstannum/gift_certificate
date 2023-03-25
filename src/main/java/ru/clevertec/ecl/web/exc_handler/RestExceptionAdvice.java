@@ -16,9 +16,9 @@ import ru.clevertec.ecl.service.util.serializer.CertificateSerializer;
 @RequiredArgsConstructor
 @RestControllerAdvice("ru.clevertec.ecl")
 public class RestExceptionAdvice {
-    private static  final String MSG_SERVER_ERROR = "Server error";
-    private static  final String MSG_CLIENT_ERROR = "Client error";
-    private static  final String DEFAULT_MSG = "Unknown error";
+    private static final String MSG_SERVER_ERROR = "Server error";
+    private static final String MSG_CLIENT_ERROR = "Client error";
+    private static final String DEFAULT_MSG = "Unknown error";
 
     private final CertificateSerializer serializer;
 
@@ -30,6 +30,7 @@ public class RestExceptionAdvice {
         return serializer.serialize(dto);
 
     }
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String error(ClientException e) {
@@ -40,17 +41,17 @@ public class RestExceptionAdvice {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorDto error(ClevertecException e) {
-        e.printStackTrace();
+    public String error(ClevertecException e) {
         log.error(e);
-        return new ErrorDto(MSG_SERVER_ERROR, e.getMessage(), e.getCode());
+        ErrorDto dto = new ErrorDto(MSG_SERVER_ERROR, e.getMessage(), e.getCode());
+        return serializer.serialize(dto);
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorDto error(Exception e) {
-        e.printStackTrace();
+    public String error(Exception e) {
         log.error(e);
-        return new ErrorDto(MSG_SERVER_ERROR, DEFAULT_MSG, "50000");
+        ErrorDto dto = new ErrorDto(MSG_SERVER_ERROR, DEFAULT_MSG, "50000");
+        return serializer.serialize(dto);
     }
 }

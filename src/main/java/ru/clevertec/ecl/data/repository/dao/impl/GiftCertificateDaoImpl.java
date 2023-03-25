@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -56,6 +57,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     private static final String EXC_MSG_NOT_FOUND_ID = "wasn't found certificate with id = ";
     private static final String EXC_MSG_UPDATE = "couldn't update certificate with id = ";
     private static final String EXC_MSG_DELETE = "couldn't delete certificate with id = ";
+    public static final String EXC_MSG_CREATE_CERT_TAG_EXISTS = "a certificate with this tag already exists";
 
     private final NamedParameterJdbcTemplate template;
 
@@ -64,7 +66,12 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(PARAM_CERT_ID, certificateId)
                 .addValue(PARAM_TAG_ID, tagId);
-        int rowUpd = template.update(CREATE_CERT_TAG_ENTRY, params);
+        int rowUpd;
+        try {
+            rowUpd = template.update(CREATE_CERT_TAG_ENTRY, params);
+        } catch (DataIntegrityViolationException e) {
+            throw new ClientException(EXC_MSG_CREATE_CERT_TAG_EXISTS, "40031");
+        }
         if (rowUpd == 0) {
             throw new ClevertecException(EXC_MSG_CREATE_CERT_TAG, "50031");
         }

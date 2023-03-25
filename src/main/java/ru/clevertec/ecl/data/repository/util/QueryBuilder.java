@@ -24,19 +24,19 @@ public class QueryBuilder {
     private StringBuilder addCertificateParamsUpdate(QueryParams queryParams) {
         StringBuilder query = new StringBuilder();
         String certParams = queryParams.getCert();
+        if (certParams == null) {
+            return query;
+        }
         String[] arrCertParams = certParams.split(",");
         for (int i = 0; i < arrCertParams.length; i++) {
             String param = arrCertParams[i];
             String[] paramArr = param.split(":");
-            String column = paramArr[0];
+            String columnParam = paramArr[0];
             String value = paramArr[1];
-            if (column.equals("descr")) {
-                column = "description";
-            }
-            query.append(column).append("=");
-            if (column.equals("name") || column.equals("description")) {
-                value = "'" + value + "'";
-                query.append(value);
+            String column = getColumn(columnParam);
+            query.append(column).append("= ");
+            if (columnParam.equals("name") || columnParam.equals("descr")) {
+                query.append("'").append(value).append("'");
             } else {
                 query.append(value);
             }
@@ -46,6 +46,18 @@ public class QueryBuilder {
         }
         query.append(" WHERE id = :id");
         return query;
+    }
+
+    private String getColumn(String colomnParam) {
+        String column;
+        switch (colomnParam) {
+            case "descr" -> column = "description ";
+            case "name" -> column = "\"name\" ";
+            case "price" -> column = "price ";
+            case "duration" -> column = "duration ";
+            default -> column = " ";
+        }
+        return column;
     }
 
     public String buildQueryCertificateCreate(QueryParams queryParams) {
