@@ -13,8 +13,6 @@ repositories {
 dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.26'
     annotationProcessor 'org.projectlombok:lombok:1.18.26'
-    testCompileOnly 'org.projectlombok:lombok:1.18.26'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.26'
     implementation 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
     implementation 'org.mapstruct:mapstruct:1.5.3.Final'
@@ -46,10 +44,11 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.24.2'
 
     testImplementation 'org.mockito:mockito-core:5.2.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'
 
     war {
         archiveFileName = 'gift.war'
-        final String targetDir = System.getenv('TOMCAT_10')
+        final String targetDir = System.getenv('TOMCAT_HOME')
         destinationDirectory = file("${targetDir}/webapps")
     }
 }

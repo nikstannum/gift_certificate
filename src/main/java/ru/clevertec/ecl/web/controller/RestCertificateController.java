@@ -20,7 +20,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.clevertec.ecl.service.GiftCertificateService;
 import ru.clevertec.ecl.service.dto.GiftCertificateDto;
 import ru.clevertec.ecl.service.dto.QueryParamsDto;
-import ru.clevertec.ecl.service.util.serializer.CertificateSerializer;
+import ru.clevertec.ecl.service.util.serializer.Serializer;
 
 @RestController
 @RequestMapping("api/certificates")
@@ -28,7 +28,7 @@ import ru.clevertec.ecl.service.util.serializer.CertificateSerializer;
 public class RestCertificateController {
 
     private final GiftCertificateService giftCertificateService;
-    private final CertificateSerializer serializer;
+    private final Serializer serializer;
 
     @ModelAttribute
     public QueryParamsDto paramsDto() {

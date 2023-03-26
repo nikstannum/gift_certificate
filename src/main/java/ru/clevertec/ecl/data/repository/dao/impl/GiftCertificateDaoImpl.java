@@ -10,8 +10,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -50,14 +53,21 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     private static final String COL_TAG_ID = "t_id";
     private static final String COL_TAG_NAME = "t_name";
     private static final String PARAM_ID = "id";
-    private static final String PARAM_LIMIT = "limit";
-    private static final String PARAM_OFFSET = "offset";
     private static final String EXC_MSG_CREATE = "couldn't create new gift certificate";
     private static final String EXC_MSG_CREATE_CERT_TAG = "couldn't create new certificate-tag entry";
     private static final String EXC_MSG_NOT_FOUND_ID = "wasn't found certificate with id = ";
     private static final String EXC_MSG_UPDATE = "couldn't update certificate with id = ";
     private static final String EXC_MSG_DELETE = "couldn't delete certificate with id = ";
     public static final String EXC_MSG_CREATE_CERT_TAG_EXISTS = "a certificate with this tag already exists";
+    public static final String EXC_MSG_CREATE_DESCR_CERT_EXISTS = "A certificate with this description already exists";
+    public static final String CODE_CLIENT_CERT_TAG_CREATE = "40031";
+    public static final String CODE_SERVER_ERROR_CERT_TAG_CREATE = "50031";
+    public static final String CODE_CLIENT_CERT_UPD = "40013";
+    public static final String CODE_CLIENT_CER_CREATE = "40011";
+    public static final String CODE_SERVER_CERT_CREATE = "50011";
+    public static final String CODE_CLIENT_CERT_READ = "40412";
+    public static final String CODE_CLIENT_CERT_DEL = "40014";
+    public static final String CODE_SERVER_CERT_TAG_DEL = "50034";
 
     private final NamedParameterJdbcTemplate template;
 
@@ -69,11 +79,11 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         int rowUpd;
         try {
             rowUpd = template.update(CREATE_CERT_TAG_ENTRY, params);
-        } catch (DataIntegrityViolationException e) {
-            throw new ClientException(EXC_MSG_CREATE_CERT_TAG_EXISTS, "40031");
+        } catch (DataIntegrityViolationException | BadSqlGrammarException e) {
+            throw new ClientException(EXC_MSG_CREATE_CERT_TAG_EXISTS, CODE_CLIENT_CERT_TAG_CREATE);
         }
         if (rowUpd == 0) {
-            throw new ClevertecException(EXC_MSG_CREATE_CERT_TAG, "50031");
+            throw new ClevertecException(EXC_MSG_CREATE_CERT_TAG, CODE_SERVER_ERROR_CERT_TAG_CREATE);
         }
     }
 
@@ -81,9 +91,14 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     public GiftCertificate updateByParams(String query, Long id) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(PARAM_ID, id);
-        int rowUpdate = template.update(query, params);
+        int rowUpdate;
+        try {
+            rowUpdate = template.update(query, params);
+        } catch (DataIntegrityViolationException | BadSqlGrammarException e) {
+            throw new ClientException(EXC_MSG_CREATE_CERT_TAG_EXISTS, CODE_CLIENT_CERT_UPD);
+        }
         if (rowUpdate == 0) {
-            throw new ClevertecException(EXC_MSG_UPDATE + id, "40013");
+            throw new ClevertecException(EXC_MSG_UPDATE + id, CODE_CLIENT_CERT_UPD);
         }
         return findById(id);
     }
@@ -121,10 +136,14 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     @Override
     public GiftCertificate createByParams(String query) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        template.update(query, new MapSqlParameterSource(), keyHolder, new String[]{COL_ID});
+        try {
+            template.update(query, new MapSqlParameterSource(), keyHolder, new String[]{COL_ID});
+        } catch (DuplicateKeyException e) {
+            throw new ClientException(EXC_MSG_CREATE_DESCR_CERT_EXISTS, e, CODE_CLIENT_CER_CREATE);
+        }
         Number key = keyHolder.getKey();
         if (key == null) {
-            throw new ClevertecException(EXC_MSG_CREATE, "50011");
+            throw new ClevertecException(EXC_MSG_CREATE, CODE_SERVER_CERT_CREATE);
         }
         Long id = key.longValue();
         return findById(id);
@@ -138,7 +157,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         try {
             return template.queryForObject(FIND_BY_ID, params, this::mapRowCertificate);
         } catch (IncorrectResultSizeDataAccessException e) {
-            throw new NotFoundException(EXC_MSG_NOT_FOUND_ID + id, e, "40412");
+            throw new NotFoundException(EXC_MSG_NOT_FOUND_ID + id, e, CODE_CLIENT_CERT_READ);
         }
     }
 
@@ -152,7 +171,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
                 .addValue(PARAM_ID, entity.getId());
         int rowUpdated = template.update(UPDATE, params);
         if (rowUpdated == 0) {
-            throw new ClientException(EXC_MSG_UPDATE + entity.getId(), "40013");
+            throw new ClientException(EXC_MSG_UPDATE + entity.getId(), CODE_CLIENT_CERT_UPD);
         }
         return findById(entity.getId());
     }
@@ -162,7 +181,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         Map<String, Object> params = new HashMap<>();
         params.put(PARAM_ID, id);
         if (template.update(DELETE, params) != 1) {
-            throw new ClientException(EXC_MSG_DELETE + id, "40014");
+            throw new ClientException(EXC_MSG_DELETE + id, CODE_CLIENT_CERT_DEL);
         }
     }
 
@@ -170,11 +189,11 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     public void deleteCertificateTagByCertificateId(Long id) {
         Map<String, Object> params = new HashMap<>();
         params.put(PARAM_ID, id);
-        int rowNum = template.update(DELETE_CERT_TAG_BY_CERT_ID, params);
-        if (rowNum != 1) {
-            throw new ClevertecException(EXC_MSG_DELETE + id, "50034");
+        try {
+            template.update(DELETE_CERT_TAG_BY_CERT_ID, params);
+        } catch (DataAccessException e) {
+            throw new ClevertecException(EXC_MSG_DELETE + id, CODE_SERVER_CERT_TAG_DEL);
         }
-
     }
 
     private GiftCertificate mapRowCertificate(ResultSet resultSet, int rowNum) throws SQLException {
@@ -203,10 +222,14 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
                 .addValue(COL_DESCRIPTION, entity.getDescription())
                 .addValue(COL_PRICE, entity.getPrice())
                 .addValue(COL_DURATION, entity.getDuration());
-        template.update(INSERT, params, keyHolder, new String[]{COL_ID});
+        try {
+            template.update(INSERT, params, keyHolder, new String[]{COL_ID});
+        } catch (DataIntegrityViolationException e) {
+            throw new ClientException(EXC_MSG_CREATE, CODE_CLIENT_CER_CREATE);
+        }
         Number key = keyHolder.getKey();
         if (key == null) {
-            throw new ClevertecException(EXC_MSG_CREATE, "50011");
+            throw new ClevertecException(EXC_MSG_CREATE, CODE_SERVER_CERT_CREATE);
         }
         Long id = key.longValue();
         return findById(id);

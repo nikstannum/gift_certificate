@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.data.entity.Tag;
 import ru.clevertec.ecl.data.repository.dao.TagDao;
 import ru.clevertec.ecl.service.exception.ClevertecException;
@@ -39,6 +39,12 @@ public class TagDaoImpl implements TagDao {
     private static final String EXC_MSG_NOT_FOUND = "wasn't found tag with id = ";
     private static final String EXC_MSG_UPDATE = "couldn't update tag with id = ";
     private static final String EXC_MSG_DELETE = "couldn't delete tag with id = ";
+    public static final String EXC_MSG_TAG_EXISTS = "this tag already exists";
+    public static final String CODE_CLIENT_TAG_CREATE = "40021";
+    public static final String CODE_SERVER_TAG_CREATE = "50021";
+    public static final String CODE_CLIENT_TAG_READ = "40422";
+    public static final String CODE_CLIENT_TAG_UPD = "40023";
+    public static final String CODE_CLIENT_TAG_DEL = "40024";
 
     private final NamedParameterJdbcTemplate template;
 
@@ -65,10 +71,14 @@ public class TagDaoImpl implements TagDao {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(COL_NAME, entity.getName());
-        template.update(INSERT, params, keyHolder, new String[]{COL_ID});
+        try {
+            template.update(INSERT, params, keyHolder, new String[]{COL_ID});
+        } catch (DuplicateKeyException e) {
+            throw new ClientException(EXC_MSG_TAG_EXISTS, CODE_CLIENT_TAG_CREATE);
+        }
         Number key = keyHolder.getKey();
         if (key == null) {
-            throw new ClevertecException(EXC_MSG_CREATE, "50021");
+            throw new ClevertecException(EXC_MSG_CREATE, CODE_SERVER_TAG_CREATE);
         }
         Long id = key.longValue();
         return findById(id);
@@ -81,7 +91,7 @@ public class TagDaoImpl implements TagDao {
         try {
             return template.queryForObject(FIND_BY_ID, params, this::mapRow);
         } catch (IncorrectResultSizeDataAccessException e) {
-            throw new NotFoundException(EXC_MSG_NOT_FOUND + id, e, "40422");
+            throw new NotFoundException(EXC_MSG_NOT_FOUND + id, e, CODE_CLIENT_TAG_READ);
         }
     }
 
@@ -96,7 +106,7 @@ public class TagDaoImpl implements TagDao {
         params.addValue(COL_NAME, entity.getName()).addValue(PARAM_ID, entity.getId());
         int rowUpdated = template.update(UPDATE, params);
         if (rowUpdated == 0) {
-            throw new ClientException(EXC_MSG_UPDATE + entity.getId(), "40023");
+            throw new ClientException(EXC_MSG_UPDATE + entity.getId(), CODE_CLIENT_TAG_UPD);
         }
         return findById(entity.getId());
     }
@@ -106,7 +116,7 @@ public class TagDaoImpl implements TagDao {
         Map<String, Object> params = new HashMap<>();
         params.put(PARAM_ID, id);
         if (template.update(DELETE, params) == 1) {
-            throw new ClientException(EXC_MSG_DELETE + id, "40024");
+            throw new ClientException(EXC_MSG_DELETE + id, CODE_CLIENT_TAG_DEL);
         }
     }
 

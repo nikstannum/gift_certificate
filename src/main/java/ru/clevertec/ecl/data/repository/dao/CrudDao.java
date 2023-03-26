@@ -20,8 +20,10 @@ public interface CrudDao<T, K> {
     T findById(K id);
 
     /**
-     * serializes all objects in the database
+     * serializes a list of objects by parameters, or all objects if there are no parameters. The default is sorted by ID. The size of the list is
+     * determined by the parameters. The default list size and maximum size is defined in @{@link ru.clevertec.ecl.data.repository.util.QueryBuilder}
      *
+     * @param query SQL query
      * @return serialized list of objects
      */
     List<T> find(String query);
@@ -35,10 +37,7 @@ public interface CrudDao<T, K> {
     T update(T entity);
 
     /**
-     * removes an object from the database
-     *
      * @param id object id
-     * @return result of deletion
      */
     void delete(K id);
 

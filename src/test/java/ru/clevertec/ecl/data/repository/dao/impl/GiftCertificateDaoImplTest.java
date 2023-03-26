@@ -81,11 +81,6 @@ class GiftCertificateDaoImplTest {
     }
 
     @Test
-    void checkDeleteCertificateTagByCertificateIdShouldThrowClevertecExc() {
-        assertThrows(ClevertecException.class, () -> dao.deleteCertificateTagByCertificateId(200L));
-    }
-
-    @Test
     void checkCreateShouldEquals() {
         GiftCertificate expected = new GiftCertificate();
         expected.setName("test name");

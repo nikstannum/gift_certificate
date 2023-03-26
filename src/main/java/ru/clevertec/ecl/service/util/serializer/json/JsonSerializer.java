@@ -5,11 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.text.SimpleDateFormat;
 import org.springframework.stereotype.Component;
-import ru.clevertec.ecl.service.exception.ClevertecException;
-import ru.clevertec.ecl.service.util.serializer.CertificateSerializer;
+import ru.clevertec.ecl.service.util.serializer.Serializer;
 
 @Component
-public class CertificateJsonSerializer implements CertificateSerializer {
+public class JsonSerializer implements Serializer {
     public static final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     public static final String MSG_PROCESS_ERROR = "Data processing error";
 

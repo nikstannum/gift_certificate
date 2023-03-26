@@ -1,22 +1,32 @@
 package ru.clevertec.ecl.data.repository.util;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 import ru.clevertec.ecl.data.entity.QueryParams;
+import ru.clevertec.ecl.service.exception.ClientException;
 
 @Component
 public class QueryBuilder {
 
     public static final int DECIMAL_SCALE = 2;
+    public static final String EXC_MSG_PRICE_MORE_TWO_DIGITS = "Price accuracy should be no more than two digits";
+    public static final String CODE_CLIENT_CERT_CREATE = "40011";
+    public static final String EXC_MSG_INCORRECT_PRICE_VALUE = "Incorrect price value";
+    public static final String CODE_CLIENT_CERT_UPD = "40013";
+    public static final String EXC_MSG_DURATION_INTEGER = "duration must be an integer";
+    /**
+     * List size if this parameter is not specified or exceeds the maximum size
+     */
+    public static final int DEFAULT_LIST_SIZE = 10;
+    public static final int MAX_LIST_SIZE = 50;
 
 
     public String buildQueryCertificateUpdate(QueryParams queryParams) {
         return """
                 UPDATE gift_certificate
-                SET 
+                SET
                 """ +
                 addCertificateParamsUpdate(queryParams);
     }
@@ -37,8 +47,25 @@ public class QueryBuilder {
             query.append(column).append("= ");
             if (columnParam.equals("name") || columnParam.equals("descr")) {
                 query.append("'").append(value).append("'");
-            } else {
-                query.append(value);
+            } else if (columnParam.equals("price")) {
+                BigDecimal valBigDec;
+                try {
+                    valBigDec = new BigDecimal(value);
+                } catch (NumberFormatException e) {
+                    throw new ClientException(EXC_MSG_INCORRECT_PRICE_VALUE, CODE_CLIENT_CERT_UPD);
+                }
+                if (valBigDec.scale() > DECIMAL_SCALE) {
+                    throw new ClientException(EXC_MSG_PRICE_MORE_TWO_DIGITS, CODE_CLIENT_CERT_UPD);
+                }
+                query.append(valBigDec);
+            } else if (columnParam.equalsIgnoreCase("duration")) {
+                Integer duration;
+                try {
+                    duration = Integer.parseInt(value);
+                } catch (NumberFormatException e) {
+                    throw new ClientException(EXC_MSG_DURATION_INTEGER, CODE_CLIENT_CERT_UPD);
+                }
+                query.append(duration);
             }
             if ((arrCertParams.length - 1) != i) {
                 query.append(", ");
@@ -62,13 +89,13 @@ public class QueryBuilder {
 
     public String buildQueryCertificateCreate(QueryParams queryParams) {
         return """
-                INSERT INTO gift_certificate ("name", description, price, duration) 
+                INSERT INTO gift_certificate ("name", description, price, duration)
                 VALUES
                 """ +
-                addCertificateParamsSelect(queryParams);
+                addCertificateParamsOrdered(queryParams);
     }
 
-    private StringBuilder addCertificateParamsSelect(QueryParams queryParams) {
+    private StringBuilder addCertificateParamsOrdered(QueryParams queryParams) {
         StringBuilder query = new StringBuilder();
         String certParams = queryParams.getCert();
         String[] paramsArr = certParams.split(",");
@@ -79,7 +106,10 @@ public class QueryBuilder {
     private StringBuilder collectQuery(Map<Integer, String> map, StringBuilder query) {
         String name = map.get(1);
         String description = map.get(2);
-        BigDecimal price = new BigDecimal(map.get(3)).setScale(DECIMAL_SCALE, RoundingMode.HALF_UP);
+        BigDecimal price = new BigDecimal(map.get(3));
+        if (price.scale() > DECIMAL_SCALE) {
+            throw new ClientException(EXC_MSG_PRICE_MORE_TWO_DIGITS, CODE_CLIENT_CERT_CREATE);
+        }
         Integer duration = Integer.valueOf(map.get(4));
         query.append("('")
                 .append(name)
@@ -112,7 +142,7 @@ public class QueryBuilder {
 
     public String buildQuerySelect(QueryParams queryParams) {
         return """
-                SELECT g.id, g."name", g.description, g.price, g.duration, g.create_date , g.last_update_date 
+                SELECT g.id, g."name", g.description, g.price, g.duration, g.create_date , g.last_update_date
                 """ +
                 addFrom(queryParams) +
                 addJoin(queryParams) +
@@ -125,16 +155,16 @@ public class QueryBuilder {
 
     private int getLimit(String sizeStr) {
         if (sizeStr == null) {
-            return 10;
+            return DEFAULT_LIST_SIZE;
         }
         int size;
         try {
             size = Integer.parseInt(sizeStr);
         } catch (NumberFormatException e) {
-            return 10;
+            return DEFAULT_LIST_SIZE;
         }
-        if (size > 50) {
-            return 10;
+        if (size > MAX_LIST_SIZE) {
+            return DEFAULT_LIST_SIZE;
         }
         return size;
     }
@@ -203,13 +233,13 @@ public class QueryBuilder {
         String operation = elmArr[1];
         String value = elmArr[2];
         if (column.equals("name")) {
-            filtration.append("t.\"name\"");
+            filtration.append("t.\"name\" ");
         }
         if (operation.equals("eq")) {
             filtration.append("='").append(value).append("'");
         }
         if (operation.equals("like")) {
-            filtration.append("LIKE '%").append(value).append("'%");
+            filtration.append("LIKE '%").append(value).append("%' ");
         }
         if (queryParams.getCert() != null) {
             filtration.append(" AND ");

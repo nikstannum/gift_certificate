@@ -10,7 +10,7 @@ import ru.clevertec.ecl.service.dto.ErrorDto;
 import ru.clevertec.ecl.service.exception.ClevertecException;
 import ru.clevertec.ecl.service.exception.ClientException;
 import ru.clevertec.ecl.service.exception.NotFoundException;
-import ru.clevertec.ecl.service.util.serializer.CertificateSerializer;
+import ru.clevertec.ecl.service.util.serializer.Serializer;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -19,8 +19,9 @@ public class RestExceptionAdvice {
     private static final String MSG_SERVER_ERROR = "Server error";
     private static final String MSG_CLIENT_ERROR = "Client error";
     private static final String DEFAULT_MSG = "Unknown error";
+    public static final String CODE_DEFAULT = "50000";
 
-    private final CertificateSerializer serializer;
+    private final Serializer serializer;
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -51,7 +52,7 @@ public class RestExceptionAdvice {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String error(Exception e) {
         log.error(e);
-        ErrorDto dto = new ErrorDto(MSG_SERVER_ERROR, DEFAULT_MSG, "50000");
+        ErrorDto dto = new ErrorDto(MSG_SERVER_ERROR, DEFAULT_MSG, CODE_DEFAULT);
         return serializer.serialize(dto);
     }
 }

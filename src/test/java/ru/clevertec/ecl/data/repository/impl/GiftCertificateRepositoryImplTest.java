@@ -30,6 +30,7 @@ import ru.clevertec.ecl.data.repository.dao.impl.GiftCertificateDaoImpl;
 import ru.clevertec.ecl.data.repository.dao.impl.TagDaoImpl;
 import ru.clevertec.ecl.data.repository.util.QueryBuilder;
 import ru.clevertec.ecl.service.exception.ClientException;
+import ru.clevertec.ecl.service.exception.NotFoundException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -138,7 +139,7 @@ class GiftCertificateRepositoryImplTest {
     @Nested
     class UpdateByParamsTest {
 
-        private static Stream<Arguments> provideQueryParamsCertId() {
+        private static Stream<Arguments> provideChangedQueryParamsCertId() {
             Long certId = 1L;
             List<Object> name = getChangedParamName();
             List<Object> descr = getChangedParamDescr();
@@ -216,7 +217,7 @@ class GiftCertificateRepositoryImplTest {
             return list;
         }
 
-        private static  List<Object> getChangedParamDuration() {
+        private static List<Object> getChangedParamDuration() {
             GiftCertificate expected = new GiftCertificate();
             expected.setId(1L);
             expected.setName("skydiving");
@@ -337,8 +338,8 @@ class GiftCertificateRepositoryImplTest {
         }
 
         @ParameterizedTest
-        @MethodSource("provideQueryParamsCertId")
-        void updateByParams(List<Object> list, Long id) {
+        @MethodSource("provideChangedQueryParamsCertId")
+        void checkUpdateByParamsShouldReturnEquals(List<Object> list, Long id) {
             QueryParams params = (QueryParams) list.get(0);
             GiftCertificate expected = (GiftCertificate) list.get(1);
 
@@ -348,33 +349,251 @@ class GiftCertificateRepositoryImplTest {
 
             assertThat(actual).isEqualTo(expected);
         }
+
+        @Test
+        void checkUpdateByParamsBadParamNameShouldThrowClientExc() {
+            QueryParams params = new QueryParams();
+            params.setCert("nam:a");
+
+            assertThrows(ClientException.class, () -> repository.updateByParams(params, 1L));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"price:a", "price:1.123"})
+        void checkUpdateByParamsBadParamPriceShouldThrowClientExc(String param) {
+            QueryParams params = new QueryParams();
+            params.setCert(param);
+            assertThrows(ClientException.class, () -> repository.updateByParams(params, 1L));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"duration:a", "duration:1.123"})
+        void checkUpdateByParamsBadParamDurationShouldThrow(String param) {
+            QueryParams params = new QueryParams();
+            params.setCert(param);
+            assertThrows(ClientException.class, () -> repository.updateByParams(params, 1L));
+        }
     }
 
     @Test
-    void createTag() {
+    void checkCreateTagShouldReturnEquals() {
+        Tag expected = new Tag();
+        expected.setId(8L);
+        expected.setName("test");
+
+        Tag actual = repository.createTag(expected);
+
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void find() {
+    void checkCreateTagShouldThrowClientExc() {
+        Tag expected = new Tag();
+        expected.setId(8L);
+        expected.setName("male");
+
+        assertThrows(ClientException.class, () -> repository.createTag(expected));
+    }
+
+    @Nested
+    class FindTest {
+
+        private static QueryParams getNameParamsLike() {
+            QueryParams params = new QueryParams();
+            params.setCert("name:like:div");
+            return params;
+        }
+
+        private static QueryParams getNameParamsEq() {
+            QueryParams params = new QueryParams();
+            params.setCert("name:eq:skydiving");
+            return params;
+        }
+
+        private static QueryParams getDescrParamsLike() {
+            QueryParams params = new QueryParams();
+            params.setCert("descr:like:jump");
+            return params;
+        }
+
+        private static QueryParams getDescrParamsEq() {
+            QueryParams params = new QueryParams();
+            params.setCert("descr:eq:parachute jump from an airplane from a height of 2000 meters with an instructor");
+            return params;
+        }
+
+        private static QueryParams getTagParamsEq() {
+            QueryParams params = new QueryParams();
+            params.setTag("name:eq:male");
+            return params;
+        }
+
+        private static QueryParams getTagParamsLike() {
+            QueryParams params = new QueryParams();
+            params.setTag("name:like:ale");
+            return params;
+        }
+
+        private static Stream<Arguments> provideSelectQueryParams() {
+            QueryParams nameParamsLike = getNameParamsLike();
+            QueryParams nameParamsEq = getNameParamsEq();
+            QueryParams descrParamsLike = getDescrParamsLike();
+            QueryParams descrParamsEq = getDescrParamsEq();
+            QueryParams tagParamsEq = getTagParamsEq();
+            QueryParams tagParamsLike = getTagParamsLike();
+
+            return Stream.of(Arguments.of(nameParamsLike),
+                    Arguments.of(nameParamsEq),
+                    Arguments.of(descrParamsLike),
+                    Arguments.of(descrParamsEq),
+                    Arguments.of(tagParamsEq),
+                    Arguments.of(tagParamsLike)
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("provideSelectQueryParams")
+        void checkFindShouldHasSize1(QueryParams params) {
+            List<GiftCertificate> actual = repository.find(params);
+            assertThat(actual).hasSize(1);
+        }
+
+        @Test
+        void checkFindShouldBeSortedByIdAsc() {
+            List<Long> expected = List.of(1L, 2L, 3L, 4L, 5L);
+
+            List<GiftCertificate> actualListCert = repository.find(new QueryParams());
+            List<Long> actual = actualListCert.stream()
+                    .map(GiftCertificate::getId).toList();
+
+            assertThat(actual).isEqualTo(expected);
+        }
+
+        @Test
+        void checkFindShouldBeSortedByNameAsc() {
+            List<String> expected = List.of("20 dollars for shopping", "a haircut", "gym membership", "massage", "skydiving");
+            QueryParams params = new QueryParams();
+            params.setOrder("name:asc");
+
+            List<GiftCertificate> actualList = repository.find(params);
+            List<String> actual = actualList.stream()
+                    .map(GiftCertificate::getName)
+                    .toList();
+
+            assertThat(actual).isEqualTo(expected);
+        }
+
+        @Test
+        void checkFindShouldBeSortedByNameDesc() {
+            List<String> expected = List.of("skydiving", "massage", "gym membership", "a haircut", "20 dollars for shopping");
+            QueryParams params = new QueryParams();
+            params.setOrder("name:desc");
+
+            List<GiftCertificate> actualList = repository.find(params);
+            List<String> actual = actualList.stream()
+                    .map(GiftCertificate::getName)
+                    .toList();
+
+            assertThat(actual).isEqualTo(expected);
+        }
     }
 
     @Test
-    void create() {
+    void checkCreateShouldReturnEquals() {
+        GiftCertificate expected = new GiftCertificate();
+        expected.setId(6L);
+        expected.setName("test name");
+        expected.setDescription("test description");
+        expected.setPrice(BigDecimal.valueOf(11.11));
+        expected.setDuration(1);
+
+        GiftCertificate actual = repository.create(expected);
+        actual.setCreatedDate(null);
+        actual.setLastUpdateDate(null);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void checkCreateDescrNotUniqueShouldThrowClientExc() {
+        GiftCertificate expected = new GiftCertificate();
+        expected.setName("test");
+        expected.setDescription("back massage lasting 1 hour");
+
+        assertThrows(ClientException.class, () -> repository.create(expected));
     }
 
     @Test
     void createByParams() {
+        QueryParams params = new QueryParams();
+        params.setCert("name:test name,descr:test description,price:1.11,duration:1");
+        params.setTag("name:test tag");
+        GiftCertificate expected = new GiftCertificate();
+        expected.setId(6L);
+        expected.setName("test name");
+        expected.setDescription("test description");
+        expected.setPrice(BigDecimal.valueOf(1.11));
+        expected.setDuration(1);
+
+        GiftCertificate actual = repository.createByParams(params);
+        actual.setCreatedDate(null);
+        actual.setLastUpdateDate(null);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    private Tag createTag(Long id, String name) {
+        Tag tag = new Tag();
+        tag.setId(id);
+        tag.setName(name);
+        return tag;
     }
 
     @Test
-    void findById() {
+    void checkFindByIdShouldReturnEquals() {
+        GiftCertificate expected = new GiftCertificate();
+        expected.setId(1L);
+        expected.setName("skydiving");
+        expected.setDescription("parachute jump from an airplane from a height of 2000 meters with an instructor");
+        expected.setPrice(BigDecimal.valueOf(199.99));
+        expected.setDuration(7);
+        Tag tag1 = createTag(1L, "male");
+        Tag tag2 = createTag(3L, "extreme");
+        expected.setTags(List.of(tag1, tag2));
+
+        GiftCertificate actual = repository.findById(1L);
+        actual.setCreatedDate(null);
+        actual.setLastUpdateDate(null);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {-1, 0, 200})
+    void checkFindByIdShouldThrowNotFoundExc(Long id) {
+        assertThrows(NotFoundException.class, () -> repository.findById(id));
     }
 
     @Test
-    void update() {
+    void checkUpdateShouldReturnEquals() {
+        GiftCertificate expected = new GiftCertificate();
+        expected.setId(1L);
+        expected.setName("test update name");
+        expected.setDescription("test update description");
+        expected.setPrice(BigDecimal.valueOf(1.11));
+        expected.setDuration(1);
+
+        GiftCertificate actual = repository.update(expected);
+        actual.setCreatedDate(null);
+        actual.setLastUpdateDate(null);
+
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
-    void delete() {
+    void checkDeleteShouldSuccess() {
+        repository = Mockito.mock(GiftCertificateRepository.class);
+        repository.delete(1L);
+        Mockito.verify(repository).delete(1L);
     }
 }
