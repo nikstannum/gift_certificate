@@ -13,7 +13,6 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import ru.clevertec.ecl.data.entity.GiftCertificate;
 import ru.clevertec.ecl.data.repository.dao.GiftCertificateDao;
-import ru.clevertec.ecl.service.exception.ClevertecException;
 import ru.clevertec.ecl.service.exception.ClientException;
 import ru.clevertec.ecl.service.exception.NotFoundException;
 

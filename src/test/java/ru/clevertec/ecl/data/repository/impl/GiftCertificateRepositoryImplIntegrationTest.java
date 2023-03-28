@@ -14,12 +14,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import ru.clevertec.ecl.ContextConfig;
 import ru.clevertec.ecl.data.entity.GiftCertificate;
 import ru.clevertec.ecl.data.entity.QueryParams;
 import ru.clevertec.ecl.data.entity.Tag;
@@ -35,15 +32,13 @@ import ru.clevertec.ecl.service.exception.NotFoundException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SpringJUnitConfig(ContextConfig.class)
-class GiftCertificateRepositoryImplTest {
+class GiftCertificateRepositoryImplIntegrationTest {
 
     private final QueryBuilder queryBuilder;
     private GiftCertificateRepository repository;
 
-    @Autowired
-    public GiftCertificateRepositoryImplTest(QueryBuilder queryBuilder) {
-        this.queryBuilder = queryBuilder;
+    public GiftCertificateRepositoryImplIntegrationTest() {
+        this.queryBuilder = new QueryBuilder();
     }
 
     @BeforeEach
