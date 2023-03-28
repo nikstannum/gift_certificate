@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS gift_certificate (
 	description VARCHAR (150) UNIQUE,
 	price NUMERIC (6,2) CHECK (price > 0),
 	duration SMALLINT CHECK (duration > 0),
-	create_date TIMESTAMP (3) DEFAULT LOCALTIMESTAMP(3),
-	last_update_date TIMESTAMP (3) DEFAULT LOCALTIMESTAMP(3)
+	create_date TIMESTAMP (3) WITHOUT time ZONE DEFAULT (now() at time zone 'utc'),
+	last_update_date TIMESTAMP (3) WITHOUT time ZONE DEFAULT (now() at time zone 'utc')
 );
 
 CREATE TABLE IF NOT EXISTS tag (
@@ -23,6 +23,10 @@ CREATE TABLE IF NOT EXISTS certificate_tag (
 );
 
 
+CREATE OR REPLACE FUNCTION now_utc()
+	RETURNS timestamp
+		RETURN now() at time zone 'utc';
+
 CREATE OR REPLACE FUNCTION trigger_update()
 	RETURNS TRIGGER AS $$
 BEGIN
@@ -31,7 +35,7 @@ BEGIN
 	OR NEW.price IS DISTINCT FROM OLD.price
 	OR NEW.duration != OLD.duration
 	THEN
-		NEW.last_update_date = LOCALTIMESTAMP(3);
+		NEW.last_update_date = now_utc();
 	END IF;
 	RETURN NEW;
 END;

@@ -105,7 +105,12 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public List<GiftCertificateDto> find(QueryParamsDto paramsDto) {
+    public List<GiftCertificateDto> findAll(QueryParamsDto paramsDto) {
+        return findByParams(paramsDto);
+    }
+
+    @Override
+    public List<GiftCertificateDto> findByParams(QueryParamsDto paramsDto) {
         QueryParams params = mapper.convert(paramsDto);
         List<GiftCertificate> certificates = giftCertificateRepository.find(params);
         Map<Long, GiftCertificate> resMap = new LinkedHashMap<>();

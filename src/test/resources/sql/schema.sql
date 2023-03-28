@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS gift_certificate (
 	description VARCHAR (150) UNIQUE,
 	price NUMERIC (6,2) CHECK (price > 0),
 	duration SMALLINT CHECK (duration > 0),
-	create_date TIMESTAMP (3) DEFAULT LOCALTIMESTAMP(3),
-	last_update_date TIMESTAMP (3) DEFAULT LOCALTIMESTAMP(3)
+	create_date TIMESTAMP (3) WITHOUT time ZONE DEFAULT (now()),
+	last_update_date TIMESTAMP (3) WITHOUT time ZONE DEFAULT (now())
 );
 
 CREATE TABLE IF NOT EXISTS tag (

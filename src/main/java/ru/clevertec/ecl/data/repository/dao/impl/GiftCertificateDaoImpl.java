@@ -2,10 +2,7 @@ package ru.clevertec.ecl.data.repository.dao.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +31,6 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
             "VALUES (:name, :description, :price, :duration)";
     private static final String FIND_BY_ID = "SELECT g.id, g.\"name\", g.description, g.price, g.duration, g.create_date, g.last_update_date " +
             "FROM gift_certificate g WHERE g.id =:id";
-    private static final String FIND_ALL = "SELECT g.id, g.\"name\", g.description, g.price, g.duration FROM gift_certificate g " +
-            "ORDER BY g.id LIMIT :limit OFFSET :offset";
     private static final String UPDATE = "UPDATE gift_certificate SET \"name\" = :name, description = :description, price = :price, " +
             "duration = :duration WHERE id = :id";
     private static final String DELETE = "DELETE FROM gift_certificate WHERE id = :id";
@@ -114,8 +109,8 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
                 certificate.setDescription(rs.getString(COL_DESCRIPTION));
                 certificate.setPrice(rs.getBigDecimal(COL_PRICE));
                 certificate.setDuration(rs.getInt(COL_DURATION));
-                certificate.setCreatedDate(convert(rs.getTimestamp(COL_CREATED_DATE)));
-                certificate.setLastUpdateDate(convert(rs.getTimestamp(COL_LAST_UPDATE_DATE)));
+                certificate.setCreatedDate(rs.getTime(COL_CREATED_DATE));
+                certificate.setLastUpdateDate(rs.getTime(COL_LAST_UPDATE_DATE));
                 Tag tag = new Tag();
                 tag.setId(rs.getLong(COL_TAG_ID));
                 tag.setName(rs.getString(COL_TAG_NAME));
@@ -203,15 +198,9 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         certificate.setPrice(resultSet.getBigDecimal(COL_PRICE));
         certificate.setDescription(resultSet.getString(COL_DESCRIPTION));
         certificate.setDuration(resultSet.getInt(COL_DURATION));
-        certificate.setCreatedDate(convert(resultSet.getTimestamp(COL_CREATED_DATE)));
-        certificate.setLastUpdateDate(convert(resultSet.getTimestamp(COL_LAST_UPDATE_DATE)));
+        certificate.setCreatedDate(resultSet.getTime(COL_CREATED_DATE));
+        certificate.setLastUpdateDate(resultSet.getTime(COL_LAST_UPDATE_DATE));
         return certificate;
-    }
-
-    private LocalDateTime convert(Date date) {
-        return date.toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
     }
 
     @Override

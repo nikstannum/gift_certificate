@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -56,8 +57,19 @@ public class RestCertificateController {
     }
 
     @GetMapping()
-    public ResponseEntity<String> get(@ModelAttribute("paramsDto") QueryParamsDto paramsDto) {
-        List<GiftCertificateDto> list = giftCertificateService.find(paramsDto);
+    public ResponseEntity<String> findByParams(@ModelAttribute("paramsDto") QueryParamsDto paramsDto) {
+        List<GiftCertificateDto> list = giftCertificateService.findByParams(paramsDto);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new ResponseEntity<>(serializer.serialize(list), headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<String> findAll(@RequestParam(required = false) String page, @RequestParam(required = false) String size) {
+        QueryParamsDto dto = new QueryParamsDto();
+        dto.setPage(page);
+        dto.setSize(size);
+        List<GiftCertificateDto> list = giftCertificateService.findAll(dto);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         return new ResponseEntity<>(serializer.serialize(list), headers, HttpStatus.OK);

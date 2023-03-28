@@ -12,15 +12,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import ru.clevertec.ecl.ContextConfig;
 import ru.clevertec.ecl.data.entity.Tag;
 import ru.clevertec.ecl.data.repository.dao.TagDao;
 import ru.clevertec.ecl.service.exception.NotFoundException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringJUnitConfig(ContextConfig.class)
 class TagDaoImplTest {
 
     private TagDao dao;

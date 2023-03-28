@@ -1,7 +1,7 @@
 package ru.clevertec.ecl.service.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.sql.Time;
 import java.util.List;
 import lombok.Data;
 
@@ -12,7 +12,7 @@ public class GiftCertificateDto {
     private String description;
     private BigDecimal price;
     private Integer duration;
-    private LocalDateTime lastUpdateDate;
-    private LocalDateTime createdDate;
+    private Time lastUpdateDate;
+    private Time createdDate;
     private List<TagDto> tags;
 }

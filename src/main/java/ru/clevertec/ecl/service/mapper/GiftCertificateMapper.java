@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import ru.clevertec.ecl.data.entity.GiftCertificate;
 import ru.clevertec.ecl.service.dto.GiftCertificateDto;
 
-@Mapper(componentModel = "spring", uses = TagMapper.class)
+@Mapper(uses = TagMapper.class)
 public interface GiftCertificateMapper {
 
     GiftCertificateDto toDto(GiftCertificate giftCertificate);

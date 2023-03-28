@@ -27,7 +27,10 @@ public interface CrudService<T, K> {
      * @param paramsDto parameters
      * @return serialized list of objects
      */
-    List<T> find(QueryParamsDto paramsDto);
+    List<T> findByParams(QueryParamsDto paramsDto);
+
+    List<T> findAll(QueryParamsDto paramsDto);
+
 
     /**
      * updates an object

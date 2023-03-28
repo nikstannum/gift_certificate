@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import ru.clevertec.ecl.data.entity.QueryParams;
 import ru.clevertec.ecl.service.dto.QueryParamsDto;
 
-@Mapper(componentModel = "spring")
+@Mapper
 public interface QueryMapper {
 
     QueryParamsDto toDto(QueryParams queryParams);

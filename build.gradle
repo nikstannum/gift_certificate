@@ -17,7 +17,13 @@ dependencies {
 
     implementation 'org.mapstruct:mapstruct:1.5.3.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+    testImplementation 'org.mapstruct:mapstruct:1.5.3.Final'
     testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+    compileJava {
+        options.compilerArgs = [
+                '-Amapstruct.defaultComponentModel=spring'
+        ]
+    }
 
     implementation 'org.postgresql:postgresql:42.6.0'
     testImplementation 'com.h2database:h2:2.1.214'
@@ -45,6 +51,10 @@ dependencies {
 
     testImplementation 'org.mockito:mockito-core:5.2.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'
+
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.0.Final'
+    runtimeOnly 'org.glassfish.expressly:expressly:5.0.0'
+
 
     war {
         archiveFileName = 'gift.war'
