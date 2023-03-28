@@ -23,6 +23,16 @@ import ru.clevertec.ecl.service.dto.GiftCertificateDto;
 import ru.clevertec.ecl.service.dto.QueryParamsDto;
 import ru.clevertec.ecl.service.util.serializer.Serializer;
 
+/**
+ * Rest Controller for  creating, updating, deleting and getting certificates.
+ * <p>
+ * Contracts for the verb GET:
+ * url/api/certificates?cert=name:like:skydiv,descr:like:airpl&tag=name:like:extr&order=date:desc&page=18&size=11
+ * url/api/certificates?cert=name:eq:skydiving&tag=name:eq:extreme&order=date&page=18&size=11
+ * <p>
+ * Contract for the verbs POST, PUT:
+ * url/cert=name:massage,descr:back massage lasting 1 hour,price:123.45,duration:12&tag=name:health,name:beauty
+ */
 @RestController
 @RequestMapping("api/certificates")
 @RequiredArgsConstructor
