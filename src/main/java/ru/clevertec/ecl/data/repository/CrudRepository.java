@@ -33,7 +33,6 @@ public interface CrudRepository<T, K> {
      * removes an object from the database
      *
      * @param id object id
-     * @return result of deletion
      */
     void delete(K id);
 

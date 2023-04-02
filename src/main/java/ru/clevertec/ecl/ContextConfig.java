@@ -1,6 +1,8 @@
 package ru.clevertec.ecl;
 
 import com.zaxxer.hikari.HikariDataSource;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -8,9 +10,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.JdbcTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
@@ -34,11 +35,17 @@ public class ContextConfig {
 
     @Value("${db.driver}")
     private String dbDriver;
-
+    @Value("${jpa.persistence.unit_name}")
+    private String persistenceUnitName;
 
     @Bean
-    public PlatformTransactionManager transactionManager() {
-        return new JdbcTransactionManager(dataSource());
+    public EntityManagerFactory entityManagerFactory() {
+        return Persistence.createEntityManagerFactory(persistenceUnitName);
+    }
+
+    @Bean
+    public TransactionManager transactionManager() {
+        return new JpaTransactionManager(entityManagerFactory());
     }
 
     @Bean
@@ -50,10 +57,5 @@ public class ContextConfig {
         dataSource.setMaximumPoolSize(dbPoolSize);
         dataSource.setDriverClassName(dbDriver);
         return dataSource;
-    }
-
-    @Bean
-    public NamedParameterJdbcTemplate namedParameterJdbcTemplate() {
-        return new NamedParameterJdbcTemplate(dataSource());
     }
 }

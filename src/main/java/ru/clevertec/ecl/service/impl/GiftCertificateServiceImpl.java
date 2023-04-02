@@ -2,9 +2,7 @@ package ru.clevertec.ecl.service.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,92 +14,131 @@ import ru.clevertec.ecl.data.repository.GiftCertificateRepository;
 import ru.clevertec.ecl.service.GiftCertificateService;
 import ru.clevertec.ecl.service.dto.GiftCertificateDto;
 import ru.clevertec.ecl.service.dto.QueryParamsDto;
+import ru.clevertec.ecl.service.exception.ClientException;
+import ru.clevertec.ecl.service.exception.NotFoundException;
 import ru.clevertec.ecl.service.mapper.Mapper;
+import ru.clevertec.ecl.service.util.builder.CertificateBuilder;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class GiftCertificateServiceImpl implements GiftCertificateService {
 
+    private static final String EXC_MSG_DESCR_EXISTS = "Certificate with such description already exists";
+    private static final String EXC_MSG_NOT_FOUND_ID = "wasn't found certificate with id = ";
+    private static final String CODE_CLIENT_CERT_READ = "40412";
+    private static final String CODE_CERT_UPD = "40013";
+    private static final String COLON = ":";
+    private static final String COMMA = ",";
+    private static final String ALIAS_DESCR = "descr";
+    private static final String OP_EQ = "eq";
+
     private final GiftCertificateRepository giftCertificateRepository;
+    private final CertificateBuilder certificateBuilder;
     private final Mapper mapper;
 
-    private List<Tag> getTagsForCreation(List<Tag> existingTags, String tagsParams) {
-        String[] acceptedTagsParamsArr = tagsParams.split(",");
+    private List<Tag> getTagsForCreation(List<Tag> acceptedTags) {
+        if (acceptedTags.isEmpty()) {
+            return Collections.emptyList();
+        }
         List<Tag> tagsForCreation = new ArrayList<>();
-        if (existingTags.isEmpty()) {
-            for (String acceptedTagParam : acceptedTagsParamsArr) {
-                String acceptedTagName = acceptedTagParam.split(":")[1];
-                tagsForCreation.add(getTagForCreation(acceptedTagName));
-            }
-        } else {
-            List<String> existingTagsName = existingTags.stream().map(Tag::getName).toList();
-            for (String acceptedTagParam : acceptedTagsParamsArr) {
-                String acceptedTagName = acceptedTagParam.split(":")[1];
-                if (!existingTagsName.contains(acceptedTagName)) {
-                    tagsForCreation.add(getTagForCreation(acceptedTagName));
-                }
+        for (Tag acceptedTag : acceptedTags) {
+            Optional<Tag> tagFromDb = giftCertificateRepository.findTagByName(acceptedTag.getName());
+            if (tagFromDb.isEmpty()) {
+                tagsForCreation.add(acceptedTag);
             }
         }
         return tagsForCreation;
     }
 
-    private Tag getTagForCreation(String acceptedTagName) {
-        Tag tag = new Tag();
-        tag.setName(acceptedTagName);
-        return tag;
-    }
-
-    private void createCertificateTagEntries(Long id, List<Tag> createdTags) {
-        List<Long> createdTagsId = createdTags.stream().map(Tag::getId).toList();
-        for (Long tagId : createdTagsId) {
-            giftCertificateRepository.createCertificateTagEntry(id, tagId);
-        }
-    }
-
     @Override
-    @Transactional
     public GiftCertificateDto create(QueryParamsDto paramsDto) {
         QueryParams params = mapper.convert(paramsDto);
-        GiftCertificate created = giftCertificateRepository.createByParams(params);
-        String tagsParam = params.getTag();
-        if (tagsParam != null) {
-            List<Tag> tagsForCreation = getTagsForCreation(Collections.emptyList(), tagsParam);
-            List<Tag> createdTags = addMissingTags(tagsForCreation);
-            createCertificateTagEntries(created.getId(), createdTags);
-            created.setTags(createdTags);
+        if (isExistsWithSuchDescription(params)) {
+            throw new ClientException(EXC_MSG_DESCR_EXISTS, CODE_CERT_UPD);
         }
+        GiftCertificate certificateForCreation = certificateBuilder.buildCertificate(params);
+        List<Tag> existingTags = getExistingTags(certificateForCreation.getTags());
+        List<Tag> tagsForCreation = getTagsForCreation(existingTags);
+        List<Tag> createdTags = new ArrayList<>();
+        for (Tag tag : tagsForCreation) {
+            createdTags.add(giftCertificateRepository.createTag(tag));
+        }
+        List<Tag> tags = new ArrayList<>();
+        if (!existingTags.isEmpty()) {
+            tags.addAll(existingTags);
+        }
+        if (!createdTags.isEmpty()) {
+            tags.addAll(createdTags);
+        }
+        certificateForCreation.setTags(tags);
+        GiftCertificate created = giftCertificateRepository.create(certificateForCreation);
         return mapper.convert(created);
     }
 
-    @Override
-    @Transactional
-    public GiftCertificateDto update(QueryParamsDto paramsDto, Long id) {
-        List<Tag> existingTags = giftCertificateRepository.findTagsByCertificateId(id);
-        String acceptedTagsParams = paramsDto.getTag();
-        if (acceptedTagsParams != null) {
-            List<Tag> tagsForCreation = getTagsForCreation(existingTags, acceptedTagsParams);
-            List<Tag> createdTags = addMissingTags(tagsForCreation);
-            existingTags.addAll(createdTags);
-            createCertificateTagEntries(id, createdTags);
+
+    private String getParamCertDescr(QueryParams queryParams) {
+        String allCertParams = queryParams.getCert();
+        if (allCertParams != null) {
+            String[] arrParams = allCertParams.split(COMMA);
+            for (String param : arrParams) {
+                if (param.toLowerCase().startsWith(ALIAS_DESCR)) {
+                    return param.split(COLON)[1];
+                }
+            }
         }
+        return null;
+    }
+
+    private boolean isExistsWithSuchDescription(QueryParams params) {
+        String descrVal = getParamCertDescr(params);
+        if (descrVal == null) {
+            return false;
+        }
+        String descr = ALIAS_DESCR + COLON + OP_EQ + COLON + descrVal;
+        QueryParams queryParams = new QueryParams();
+        queryParams.setCert(descr);
+        List<GiftCertificate> list = giftCertificateRepository.find(queryParams);
+        return !list.isEmpty();
+    }
+
+
+    @Override
+    public GiftCertificateDto update(QueryParamsDto paramsDto, Long id) {
         QueryParams params = mapper.convert(paramsDto);
-        GiftCertificate updated = giftCertificateRepository.updateByParams(params, id);
-        updated.setTags(existingTags);
+        if (isExistsWithSuchDescription(params)) {
+            throw new ClientException(EXC_MSG_DESCR_EXISTS, CODE_CERT_UPD);
+        }
+        GiftCertificate certWithAcceptedParams = certificateBuilder.buildCertificate(params);
+        List<Tag> existingTags = getExistingTags(certWithAcceptedParams.getTags());
+        List<Tag> tagsForCreation = getTagsForCreation(existingTags);
+        List<Tag> createdTags = new ArrayList<>();
+        for (Tag tag : tagsForCreation) {
+            createdTags.add(giftCertificateRepository.createTag(tag));
+        }
+        List<Tag> tags = new ArrayList<>();
+        if (!existingTags.isEmpty()) {
+            tags.addAll(existingTags);
+        }
+        if (!createdTags.isEmpty()) {
+            tags.addAll(createdTags);
+        }
+        certWithAcceptedParams.setTags(tags);
+        certWithAcceptedParams.setId(id);
+        GiftCertificate updated = giftCertificateRepository.update(certWithAcceptedParams);
         return mapper.convert(updated);
     }
 
-    private List<Tag> addMissingTags(List<Tag> tagsForCreation) {
-        List<Tag> addedTags = new ArrayList<>();
-        for (Tag tag : tagsForCreation) {
-            Optional<Tag> existingTagOpt = giftCertificateRepository.findTagByName(tag.getName());
-            if (existingTagOpt.isPresent()) {
-                addedTags.add(existingTagOpt.get());
-            } else {
-                Tag createdTag = giftCertificateRepository.createTag(tag);
-                addedTags.add(createdTag);
-            }
+    private List<Tag> getExistingTags(List<Tag> tags) {
+        if (tags.isEmpty()) {
+            return Collections.emptyList();
         }
-        return addedTags;
+        List<Tag> existingTags = new ArrayList<>();
+        for (Tag tag : tags) {
+            Optional<Tag> optionalTag = giftCertificateRepository.findTagByName(tag.getName());
+            optionalTag.ifPresent(existingTags::add);
+        }
+        return existingTags;
     }
 
     @Override
@@ -113,23 +150,19 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     public List<GiftCertificateDto> findByParams(QueryParamsDto paramsDto) {
         QueryParams params = mapper.convert(paramsDto);
         List<GiftCertificate> certificates = giftCertificateRepository.find(params);
-        Map<Long, GiftCertificate> resMap = new LinkedHashMap<>();
-        certificates.forEach(cert -> resMap.merge(cert.getId(), cert, (a, b) -> {
-            b.getTags().addAll(a.getTags());
-            return b;
-        }));
-        List<GiftCertificate> resultList = resMap.values().stream().toList();
-        return resultList.stream().map(mapper::convert).toList();
+        return certificates.stream().map(mapper::convert).toList();
     }
-
 
     @Override
     public GiftCertificateDto findById(Long id) {
-        return mapper.convert(giftCertificateRepository.findById(id));
+        GiftCertificate certificate = giftCertificateRepository.findById(id);
+        if (certificate == null) {
+            throw new NotFoundException(EXC_MSG_NOT_FOUND_ID + id, CODE_CLIENT_CERT_READ);
+        }
+        return mapper.convert(certificate);
     }
 
     @Override
-    @Transactional
     public void delete(Long id) {
         giftCertificateRepository.delete(id);
     }

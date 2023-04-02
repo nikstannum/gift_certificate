@@ -2,46 +2,16 @@ package ru.clevertec.ecl.data.repository.dao;
 
 import java.util.List;
 import ru.clevertec.ecl.data.entity.GiftCertificate;
+import ru.clevertec.ecl.data.entity.QueryParams;
 
 public interface GiftCertificateDao extends CrudDao<GiftCertificate, Long> {
 
     /**
-     * serializes objects in the database, such as GiftCertificate by generated SQL query. GiftCertificate contains a list of tags
+     * serializes a list of objects by parameters, or all objects if there are no parameters. The default is sorted by ID. The size of the list is
+     * determined by the parameters. The default list size and maximum size is defined in @{@link ru.clevertec.ecl.data.repository.util.CriteriaQueryBuilder}
      *
-     * @param query SQL query
+     * @param queryParams {@link ru.clevertec.ecl.data.entity.QueryParams} for {@link ru.clevertec.ecl.data.repository.util.CriteriaQueryBuilder}
      * @return serialized list of objects
      */
-    List<GiftCertificate> findByRichParams(String query);
-
-    /**
-     * creates an object in the database based on the generated query
-     *
-     * @param query SQL query
-     * @return serialized GiftCertificate
-     */
-    GiftCertificate createByParams(String query);
-
-    /**
-     * creates a tuple in the join table based on the passed IDs
-     *
-     * @param certificateId id of GiftCertificate
-     * @param tagId         id of Tag
-     */
-    void createCertificateTagEntry(Long certificateId, Long tagId);
-
-    /**
-     * removes a tuple in the join table based on the passed ids
-     *
-     * @param id id of GiftCertificate
-     */
-    void deleteCertificateTagByCertificateId(Long id);
-
-    /**
-     * updates an object in the database by generated SQL query
-     *
-     * @param query SQL query
-     * @param id    id of GiftCertificate
-     * @return updated object
-     */
-    GiftCertificate updateByParams(String query, Long id);
+    List<GiftCertificate> findByParams(QueryParams queryParams);
 }

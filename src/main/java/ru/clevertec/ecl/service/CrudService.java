@@ -4,6 +4,7 @@ import java.util.List;
 import ru.clevertec.ecl.service.dto.QueryParamsDto;
 
 public interface CrudService<T, K> {
+
     /**
      * creates an object based on the received parameters
      *
@@ -22,15 +23,22 @@ public interface CrudService<T, K> {
 
     /**
      * gets a list of objects by parameters or all objects if there are no parameters. The default is sorted by ID. The size of the list is
-     * determined by the parameters. The default list size and maximum size is defined in @{@link ru.clevertec.ecl.data.repository.util.QueryBuilder}
+     * determined by the parameters. The default list size and maximum size is defined
+     * in @{@link ru.clevertec.ecl.data.repository.util.CriteriaQueryBuilder}
      *
      * @param paramsDto parameters
      * @return serialized list of objects
      */
     List<T> findByParams(QueryParamsDto paramsDto);
 
+    /**
+     * gets a list of all objects. The default is sorted by ID. The size of the list is determined by the parameters. The default list size
+     * and maximum size is defined in @{@link ru.clevertec.ecl.data.repository.util.CriteriaQueryBuilder}
+     *
+     * @param paramsDto parameters
+     * @return serialized list of objects
+     */
     List<T> findAll(QueryParamsDto paramsDto);
-
 
     /**
      * updates an object

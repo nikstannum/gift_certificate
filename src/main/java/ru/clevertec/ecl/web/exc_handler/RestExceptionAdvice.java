@@ -19,7 +19,7 @@ public class RestExceptionAdvice {
     private static final String MSG_SERVER_ERROR = "Server error";
     private static final String MSG_CLIENT_ERROR = "Client error";
     private static final String DEFAULT_MSG = "Unknown error";
-    public static final String CODE_DEFAULT = "50000";
+    private static final String CODE_DEFAULT = "50000";
 
     private final Serializer serializer;
 
@@ -29,7 +29,6 @@ public class RestExceptionAdvice {
         log.error(e);
         ErrorDto dto = new ErrorDto(MSG_CLIENT_ERROR, e.getMessage(), e.getCode());
         return serializer.serialize(dto);
-
     }
 
     @ExceptionHandler

@@ -35,14 +35,16 @@ BEGIN
 	OR NEW.price IS DISTINCT FROM OLD.price
 	OR NEW.duration != OLD.duration
 	THEN
-		NEW.last_update_date = now_utc();
+	UPDATE gift_certificate
+	SET last_update_date = now_utc()
+	WHERE id = OLD.id;
 	END IF;
 	RETURN NEW;
 END;
 $$ LANGUAGE 'plpgsql';
 
 CREATE OR REPLACE TRIGGER last_update_date_changes
-	BEFORE UPDATE
+	AFTER UPDATE
 	ON gift_certificate
 	FOR EACH ROW
 	EXECUTE PROCEDURE trigger_update();

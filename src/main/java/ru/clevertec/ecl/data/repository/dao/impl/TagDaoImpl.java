@@ -1,129 +1,81 @@
 package ru.clevertec.ecl.data.repository.dao.impl;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
+import org.hibernate.Session;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.data.entity.Tag;
 import ru.clevertec.ecl.data.repository.dao.TagDao;
-import ru.clevertec.ecl.service.exception.ClevertecException;
-import ru.clevertec.ecl.service.exception.ClientException;
-import ru.clevertec.ecl.service.exception.NotFoundException;
 
 @Component
 @RequiredArgsConstructor
+@Transactional
 public class TagDaoImpl implements TagDao {
-    private static final String FIND_BY_ID = "SELECT t.id, t.\"name\" FROM tag t WHERE t.id = :id";
-    private static final String FIND_ALL = "SELECT t.id, t.\"name\" FROM tag t";
-    private static final String FIND_TAGS_BY_CERTIFICATE_ID = "SELECT t.id, t.\"name\" FROM tag t " +
-            "JOIN certificate_tag ct ON t.id = ct.tag_id WHERE ct.certificate_id = :id";
-    private static final String FIND_BY_TAG_NAME = "SELECT t.id, t.\"name\" FROM tag t WHERE t.\"name\" = :tagName";
-    private static final String INSERT = "INSERT INTO tag (\"name\") VALUES (:name)";
-    private static final String UPDATE = "UPDATE tag SET \"name\" = :name WHERE id = :id";
-    private static final String DELETE = "DELETE FROM tag WHERE id = :id";
     private static final String COL_ID = "id";
-    private static final String COL_NAME = "name";
-    private static final String PARAM_ID = "id";
-    private static final String PARAM_TAG_NAME = "tagName";
-    private static final String EXC_MSG_CREATE = "couldn't create new tag";
-    private static final String EXC_MSG_NOT_FOUND = "wasn't found tag with id = ";
-    private static final String EXC_MSG_UPDATE = "couldn't update tag with id = ";
-    private static final String EXC_MSG_DELETE = "couldn't delete tag with id = ";
-    public static final String EXC_MSG_TAG_EXISTS = "this tag already exists";
-    public static final String CODE_CLIENT_TAG_CREATE = "40021";
-    public static final String CODE_SERVER_TAG_CREATE = "50021";
-    public static final String CODE_CLIENT_TAG_READ = "40422";
-    public static final String CODE_CLIENT_TAG_UPD = "40023";
-    public static final String CODE_CLIENT_TAG_DEL = "40024";
 
-    private final NamedParameterJdbcTemplate template;
+    @PersistenceContext
+    private EntityManager manager;
 
     @Override
     public Optional<Tag> findTagByName(String tagName) {
-        Map<String, Object> params = new HashMap<>();
-        params.put(PARAM_TAG_NAME, tagName);
+        Session session = manager.unwrap(Session.class);
+        TypedQuery<Tag> query = session.createQuery("from Tag where name=:tagName", Tag.class);
+        query.setParameter("tagName", tagName);
         try {
-            return Optional.ofNullable(template.queryForObject(FIND_BY_TAG_NAME, params, this::mapRow));
-        } catch (IncorrectResultSizeDataAccessException e) {
+            Tag tag = query.getSingleResult();
+            return Optional.of(tag);
+        } catch (NoResultException e) {
             return Optional.empty();
         }
     }
 
     @Override
-    public List<Tag> findTagsByGiftCertificateId(Long id) {
-        Map<String, Object> params = new HashMap<>();
-        params.put(PARAM_ID, id);
-        return template.query(FIND_TAGS_BY_CERTIFICATE_ID, params, this::mapRow);
-    }
-
-    @Override
     public Tag create(Tag entity) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(COL_NAME, entity.getName());
-        try {
-            template.update(INSERT, params, keyHolder, new String[]{COL_ID});
-        } catch (DuplicateKeyException e) {
-            throw new ClientException(EXC_MSG_TAG_EXISTS, CODE_CLIENT_TAG_CREATE);
-        }
-        Number key = keyHolder.getKey();
-        if (key == null) {
-            throw new ClevertecException(EXC_MSG_CREATE, CODE_SERVER_TAG_CREATE);
-        }
-        Long id = key.longValue();
-        return findById(id);
+        Session session = manager.unwrap(Session.class);
+        session.persist(entity);
+        return entity;
     }
 
     @Override
     public Tag findById(Long id) {
-        Map<String, Object> params = new HashMap<>();
-        params.put(PARAM_ID, id);
-        try {
-            return template.queryForObject(FIND_BY_ID, params, this::mapRow);
-        } catch (IncorrectResultSizeDataAccessException e) {
-            throw new NotFoundException(EXC_MSG_NOT_FOUND + id, e, CODE_CLIENT_TAG_READ);
-        }
+        Session session = manager.unwrap(Session.class);
+        return session.find(Tag.class, id);
     }
 
     @Override
-    public List<Tag> find(String query) {
-        return template.query(FIND_ALL, this::mapRow);
+    public List<Tag> findAll(int limit, long offset) {
+        Session session = manager.unwrap(Session.class);
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery<Tag> criteriaQuery = cb.createQuery(Tag.class);
+        Root<Tag> root = criteriaQuery.from(Tag.class);
+        criteriaQuery.orderBy(cb.asc(root.get(COL_ID)));
+        TypedQuery<Tag> query = session.createQuery(criteriaQuery);
+        query.setFirstResult((int) offset);
+        query.setMaxResults(limit);
+        return query.getResultList();
     }
 
     @Override
     public Tag update(Tag entity) {
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(COL_NAME, entity.getName()).addValue(PARAM_ID, entity.getId());
-        int rowUpdated = template.update(UPDATE, params);
-        if (rowUpdated == 0) {
-            throw new ClientException(EXC_MSG_UPDATE + entity.getId(), CODE_CLIENT_TAG_UPD);
-        }
-        return findById(entity.getId());
+        Session session = manager.unwrap(Session.class);
+        Tag fromDb = session.find(Tag.class, entity.getId());
+        fromDb.setName(entity.getName());
+        return fromDb;
     }
 
     @Override
     public void delete(Long id) {
-        Map<String, Object> params = new HashMap<>();
-        params.put(PARAM_ID, id);
-        if (template.update(DELETE, params) == 1) {
-            throw new ClientException(EXC_MSG_DELETE + id, CODE_CLIENT_TAG_DEL);
-        }
-    }
-
-    private Tag mapRow(ResultSet resultSet, int rowNum) throws SQLException {
-        Tag tag = new Tag();
-        tag.setId(resultSet.getLong(COL_ID));
-        tag.setName(resultSet.getString(COL_NAME));
-        return tag;
+        Session session = manager.unwrap(Session.class);
+        Tag tag = session.find(Tag.class, id);
+        session.remove(tag);
     }
 }
