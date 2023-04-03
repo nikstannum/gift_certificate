@@ -4,10 +4,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
@@ -49,19 +45,6 @@ public class TagRepositoryImpl implements TagRepository {
     public Tag findById(Long id) {
         Session session = manager.unwrap(Session.class);
         return session.find(Tag.class, id);
-    }
-
-    @Override
-    public List<Tag> findAll(int limit, long offset) {
-        Session session = manager.unwrap(Session.class);
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery<Tag> criteriaQuery = cb.createQuery(Tag.class);
-        Root<Tag> root = criteriaQuery.from(Tag.class);
-        criteriaQuery.orderBy(cb.asc(root.get(COL_ID)));
-        TypedQuery<Tag> query = session.createQuery(criteriaQuery);
-        query.setFirstResult((int) offset);
-        query.setMaxResults(limit);
-        return query.getResultList();
     }
 
     @Override

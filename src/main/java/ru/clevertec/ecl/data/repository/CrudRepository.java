@@ -1,7 +1,5 @@
 package ru.clevertec.ecl.data.repository;
 
-import java.util.List;
-
 public interface CrudRepository<T, K> {
 
     /**
@@ -19,15 +17,6 @@ public interface CrudRepository<T, K> {
      * @return this object
      */
     T findById(K id);
-
-    /**
-     * serializes a list of objects
-     *
-     * @param limit  sample size
-     * @param offset number of elements behind
-     * @return serialized list of objects
-     */
-    List<T> findAll(int limit, long offset);
 
     /**
      * updates an object in the database

@@ -34,9 +34,8 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private static final String ALIAS_DESCR = "descr";
     private static final String OP_EQ = "eq";
 
-//    private final GiftCertificateRepository giftCertificateRepository;
-    private final GiftCertificateRepository certificateDao;
-    private final TagRepository tagDao;
+    private final GiftCertificateRepository certificateRepository;
+    private final TagRepository tagRepository;
     private final CertificateBuilder certificateBuilder;
     private final Mapper mapper;
 
@@ -46,7 +45,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
         List<Tag> tagsForCreation = new ArrayList<>();
         for (Tag acceptedTag : acceptedTags) {
-            Optional<Tag> tagFromDb = tagDao.findTagByName(acceptedTag.getName());
+            Optional<Tag> tagFromDb = tagRepository.findTagByName(acceptedTag.getName());
             if (tagFromDb.isEmpty()) {
                 tagsForCreation.add(acceptedTag);
             }
@@ -65,7 +64,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         List<Tag> tagsForCreation = getTagsForCreation(certificateForCreation.getTags());
         List<Tag> createdTags = new ArrayList<>();
         for (Tag tag : tagsForCreation) {
-            createdTags.add(tagDao.create(tag));
+            createdTags.add(tagRepository.create(tag));
         }
         List<Tag> tags = new ArrayList<>();
         if (!existingTags.isEmpty()) {
@@ -75,7 +74,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
             tags.addAll(createdTags);
         }
         certificateForCreation.setTags(tags);
-        GiftCertificate created = certificateDao.create(certificateForCreation);
+        GiftCertificate created = certificateRepository.create(certificateForCreation);
         return mapper.convert(created);
     }
 
@@ -101,7 +100,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         String descr = ALIAS_DESCR + COLON + OP_EQ + COLON + descrVal;
         QueryParams queryParams = new QueryParams();
         queryParams.setCert(descr);
-        List<GiftCertificate> list = certificateDao.findByParams(queryParams);
+        List<GiftCertificate> list = certificateRepository.findByParams(queryParams);
         return !list.isEmpty();
     }
 
@@ -131,7 +130,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         List<Tag> tagsForCreation = getTagsForCreation(certWithAcceptedParams.getTags());
         List<Tag> createdTags = new ArrayList<>();
         for (Tag tag : tagsForCreation) {
-            createdTags.add(tagDao.create(tag));
+            createdTags.add(tagRepository.create(tag));
         }
         List<Tag> tags = new ArrayList<>();
         if (!existingTags.isEmpty()) {
@@ -142,9 +141,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
         certWithAcceptedParams.setTags(tags);
         certWithAcceptedParams.setId(id);
-        GiftCertificate fromDb = certificateDao.findById(id);
+        GiftCertificate fromDb = certificateRepository.findById(id);
         updateFields(fromDb, certWithAcceptedParams);
-        GiftCertificate updated = certificateDao.update(fromDb);
+        GiftCertificate updated = certificateRepository.update(fromDb);
         return mapper.convert(updated);
     }
 
@@ -154,7 +153,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
         List<Tag> existingTags = new ArrayList<>();
         for (Tag tag : tags) {
-            Optional<Tag> optionalTag = tagDao.findTagByName(tag.getName());
+            Optional<Tag> optionalTag = tagRepository.findTagByName(tag.getName());
             optionalTag.ifPresent(existingTags::add);
         }
         return existingTags;
@@ -168,13 +167,13 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Override
     public List<GiftCertificateDto> findByParams(QueryParamsDto paramsDto) {
         QueryParams params = mapper.convert(paramsDto);
-        List<GiftCertificate> certificates = certificateDao.findByParams(params);
+        List<GiftCertificate> certificates = certificateRepository.findByParams(params);
         return certificates.stream().map(mapper::convert).toList();
     }
 
     @Override
     public GiftCertificateDto findById(Long id) {
-        GiftCertificate certificate = certificateDao.findById(id);
+        GiftCertificate certificate = certificateRepository.findById(id);
         if (certificate == null) {
             throw new NotFoundException(EXC_MSG_NOT_FOUND_ID + id, CODE_CLIENT_CERT_READ);
         }
@@ -183,6 +182,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     @Override
     public void delete(Long id) {
-        certificateDao.delete(id);
+        certificateRepository.delete(id);
     }
 }

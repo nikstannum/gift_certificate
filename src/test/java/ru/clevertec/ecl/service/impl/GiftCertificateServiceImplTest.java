@@ -3,7 +3,7 @@ package ru.clevertec.ecl.service.impl;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,153 +19,223 @@ import ru.clevertec.ecl.data.entity.GiftCertificate;
 import ru.clevertec.ecl.data.entity.QueryParams;
 import ru.clevertec.ecl.data.entity.Tag;
 import ru.clevertec.ecl.data.repository.GiftCertificateRepository;
+import ru.clevertec.ecl.data.repository.TagRepository;
 import ru.clevertec.ecl.service.dto.GiftCertificateDto;
 import ru.clevertec.ecl.service.dto.QueryParamsDto;
 import ru.clevertec.ecl.service.dto.TagDto;
+import ru.clevertec.ecl.service.exception.ClientException;
 import ru.clevertec.ecl.service.exception.NotFoundException;
-import ru.clevertec.ecl.service.mapper.GiftCertificateMapperImpl;
 import ru.clevertec.ecl.service.mapper.Mapper;
-import ru.clevertec.ecl.service.mapper.QueryMapperImpl;
-import ru.clevertec.ecl.service.mapper.TagMapperImpl;
+import ru.clevertec.ecl.service.util.builder.CertificateBuilder;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class GiftCertificateServiceImplTest {
 
-    public static final String PAGE_SIZE_2 = "2";
-    private static final String TAG_NAME_MALE = "male";
-    private static final String TAG_NAME_EXTREME = "extreme";
-    private static final String TAG_NAME_TEST = "test";
-    public static final String CERT_NAME_SKYDIVING = "skydiving";
-    public static final String STD_CERT_PARAMS_CREATE_UPD = "name:test name,descr:test description,price:1.11,duration:1";
-    public static final String STD_TAG_PARAMS_CREATE_UPD = "name:male,name:test";
-    public static final String TEST_NAME = "test name";
-    public static final String TEST_DESCRIPTION = "test description";
-
-    private final TagMapperImpl tag = new TagMapperImpl();
-    private final QueryMapperImpl queryMapper = new QueryMapperImpl();
-    private final GiftCertificateMapperImpl certificateMapper = new GiftCertificateMapperImpl();
-    private Mapper mapper = new Mapper(tag, certificateMapper, queryMapper);
-    private GiftCertificateServiceImpl service;
+    public static final String PARAM_CERT_CREATE = "name:name,descr:description,price:1.11,duration:1";
+    public static final String PARAM_TAG_CREATE = "name:tag1,name:tag2";
+    public static final String DESCR_EXISTS = "descr:exists";
+    public static final String DESCR_EQ_EXISTS = "descr:eq:exists";
+    public static final String NAME = "name";
+    public static final String DESCRIPTION = "description";
+    public static final BigDecimal PRICE = BigDecimal.valueOf(1.11);
+    public static final int DURATION = 1;
+    public static final String TAG_1 = "tag1";
+    public static final String TAG_2 = "tag2";
+    public static final String EXISTS = "exists";
 
     @Mock
-    private GiftCertificateRepository repository;
+    private GiftCertificateRepository certificateRepository;
+    @Mock
+    private TagRepository tagRepository;
+    @Mock
+    private Mapper mapper;
+    @Mock
+    private CertificateBuilder builder;
+
+    @InjectMocks
+    private GiftCertificateServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new GiftCertificateServiceImpl(repository, mapper);
+        service = new GiftCertificateServiceImpl(certificateRepository, tagRepository, builder, mapper);
     }
 
     @Test
-    void checkFindByParamsShouldReturn5() {
-        List<GiftCertificate> list = new ArrayList<>();
-        for (long i = 1; i <= 5; i++) {
-            GiftCertificate certificate = getEmptyCertificateById(i);
-            list.add(certificate);
-        }
-        Mockito.when(repository.find(new QueryParams())).thenReturn(list);
-        List<GiftCertificateDto> listDto = service.findByParams(new QueryParamsDto());
+    void checkCreateShouldReturnEquals() {
+        QueryParams queryParams = getQueryParams();
+        QueryParamsDto paramsDtoCreate = getQueryParamsDto();
+        Mockito.doReturn(queryParams).when(mapper).convert(paramsDtoCreate);
+        GiftCertificate certificate = getCertificate();
+        GiftCertificateDto certificateDto = getCertificateDto();
+        Mockito.doReturn(certificateDto).when(mapper).convert(certificate);
+        Mockito.doReturn(certificate).when(builder).buildCertificate(queryParams);
+        Mockito.doReturn(certificate).when(certificateRepository).create(certificate);
 
-        assertThat(listDto).hasSize(5);
+        GiftCertificateDto actual = service.create(paramsDtoCreate);
+
+        assertThat(actual).isEqualTo(certificateDto);
     }
 
-    private GiftCertificate getEmptyCertificateById(Long id) {
+    private QueryParamsDto getQueryParamsDto() {
+        QueryParamsDto paramsDtoCreate = new QueryParamsDto();
+        paramsDtoCreate.setCert(PARAM_CERT_CREATE);
+        paramsDtoCreate.setTag(PARAM_TAG_CREATE);
+        return paramsDtoCreate;
+    }
+
+    private QueryParams getQueryParams() {
+        QueryParams queryParams = new QueryParams();
+        queryParams.setCert(PARAM_CERT_CREATE);
+        queryParams.setTag(PARAM_TAG_CREATE);
+        return queryParams;
+    }
+
+    private GiftCertificateDto getCertificateDto() {
+        GiftCertificateDto certificate = new GiftCertificateDto();
+        certificate.setName(NAME);
+        certificate.setDescription(DESCRIPTION);
+        certificate.setDuration(DURATION);
+        certificate.setPrice(PRICE);
+        TagDto tag1 = createTagDto(null, TAG_1);
+        TagDto tag2 = createTagDto(null, TAG_2);
+        List<TagDto> tags = new ArrayList<>();
+        tags.add(tag1);
+        tags.add(tag2);
+        certificate.setTags(tags);
+        return certificate;
+    }
+
+    private GiftCertificate getCertificate() {
         GiftCertificate certificate = new GiftCertificate();
-        certificate.setId(id);
+        certificate.setName(NAME);
+        certificate.setDescription(DESCRIPTION);
+        certificate.setDuration(DURATION);
+        certificate.setPrice(PRICE);
+        Tag tag1 = createTag(null, TAG_1);
+        Tag tag2 = createTag(null, TAG_2);
+        List<Tag> tags = new ArrayList<>();
+        tags.add(tag1);
+        tags.add(tag2);
+        certificate.setTags(tags);
         return certificate;
     }
 
     @Test
-    void checkFindByParamsShouldReturn2() {
-        List<GiftCertificate> list = new ArrayList<>();
-        for (long i = 1; i <= 2; i++) {
-            GiftCertificate certificate = getEmptyCertificateById(i);
-            list.add(certificate);
-        }
-        QueryParams params = new QueryParams();
-        params.setSize(PAGE_SIZE_2);
+    void checkCreateShouldThrowClientExc() {
+        prepareMocksShouldThrowClientExc();
         QueryParamsDto paramsDto = new QueryParamsDto();
-        paramsDto.setSize(PAGE_SIZE_2);
-        Mockito.when(repository.find(params)).thenReturn(list);
+        paramsDto.setCert(DESCR_EXISTS);
+        Assertions.assertThrows(ClientException.class, () -> service.create(paramsDto));
+    }
 
-        List<GiftCertificateDto> listDto = service.findByParams(paramsDto);
+    private void prepareMocksShouldThrowClientExc() {
+        QueryParamsDto paramsDtoDescrExists = new QueryParamsDto();
+        paramsDtoDescrExists.setCert(DESCR_EXISTS);
+        QueryParams paramsDescrExists = new QueryParams();
+        paramsDescrExists.setCert(DESCR_EXISTS);
+        Mockito.doReturn(paramsDescrExists).when(mapper).convert(paramsDtoDescrExists);
 
-        assertThat(listDto).hasSize(2);
+        QueryParams paramsDescrEqExists = new QueryParams();
+        paramsDescrEqExists.setCert(DESCR_EQ_EXISTS);
+        List<GiftCertificate> list = List.of(new GiftCertificate());
+        Mockito.doReturn(list).when(certificateRepository).findByParams(paramsDescrEqExists);
+    }
+
+    @Test
+    void checkUpdateShouldThrowClientExc() {
+        prepareMocksShouldThrowClientExc();
+        QueryParamsDto paramsDto = new QueryParamsDto();
+        paramsDto.setCert(DESCR_EXISTS);
+        Assertions.assertThrows(ClientException.class, () -> service.update(paramsDto, 1L));
+    }
+
+    @Test
+    void checkUpdateShouldReturnEquals() {
+        QueryParams queryParams = getQueryParams();
+        QueryParamsDto paramsDtoCreate = getQueryParamsDto();
+        Mockito.doReturn(queryParams).when(mapper).convert(paramsDtoCreate);
+        GiftCertificate certificate = getCertificate();
+        GiftCertificateDto certificateDto = getCertificateDto();
+        Mockito.doReturn(certificateDto).when(mapper).convert(certificate);
+        Mockito.doReturn(certificate).when(builder).buildCertificate(queryParams);
+        Mockito.doReturn(certificate).when(certificateRepository).findById(1L);
+        Mockito.doReturn(certificate).when(certificateRepository).update(certificate);
+
+        GiftCertificateDto actual = service.update(paramsDtoCreate, 1L);
+
+        assertThat(actual).isEqualTo(certificateDto);
+    }
+
+    @Test
+    void checkFindAllShouldSize2() {
+        GiftCertificate certificate = getCertificate();
+        GiftCertificateDto certificateDto = getCertificateDto();
+        QueryParams queryParams = new QueryParams();
+        List<GiftCertificate> list = List.of(certificate, certificate);
+        Mockito.doReturn(list).when(certificateRepository).findByParams(queryParams);
+        QueryParamsDto paramsDto = new QueryParamsDto();
+        Mockito.doReturn(queryParams).when(mapper).convert(paramsDto);
+        Mockito.doReturn(certificateDto).when(mapper).convert(certificate);
+
+        List<GiftCertificateDto> actual = service.findAll(paramsDto);
+
+        assertThat(actual).hasSize(2);
+    }
+
+    @Test
+    void checkFindByParamsShouldSize1() {
+        QueryParamsDto paramsDto = new QueryParamsDto();
+        paramsDto.setCert(DESCR_EQ_EXISTS);
+        QueryParams queryParams = new QueryParams();
+        queryParams.setCert(DESCR_EQ_EXISTS);
+        Mockito.doReturn(queryParams).when(mapper).convert(paramsDto);
+        GiftCertificate certificate = new GiftCertificate();
+        certificate.setDescription(EXISTS);
+        GiftCertificateDto certificateDto = new GiftCertificateDto();
+        certificateDto.setDescription(EXISTS);
+        Mockito.doReturn(certificateDto).when(mapper).convert(certificate);
+        List<GiftCertificate> list = new ArrayList<>();
+        list.add(certificate);
+        Mockito.doReturn(list).when(certificateRepository).findByParams(queryParams);
+
+        List<GiftCertificateDto> dtos = service.findByParams(paramsDto);
+
+        assertThat(dtos).hasSize(1);
     }
 
     @ParameterizedTest
     @ValueSource(longs = {-1, 0, 200})
     void checkFindByIdShouldThrowNotFoundExc(Long id) {
-        Mockito.when(repository.findById(id)).thenThrow(NotFoundException.class);
-        org.junit.jupiter.api.Assertions.assertThrows(NotFoundException.class, () -> service.findById(id));
+        Mockito.doReturn(null).when(certificateRepository).findById(id);
+        Assertions.assertThrows(NotFoundException.class, () -> service.findById(id));
     }
 
     @Test
     void checkFindByIdShouldReturnEquals() {
-        GiftCertificate certificate = getEmptyCertificateById(1L);
-        certificate.setName(CERT_NAME_SKYDIVING);
-        Mockito.when(repository.findById(1L)).thenReturn(certificate);
+        GiftCertificate certificate = new GiftCertificate();
+        certificate.setId(1L);
+        Mockito.doReturn(certificate).when(certificateRepository).findById(1L);
+        GiftCertificateDto dto = new GiftCertificateDto();
+        dto.setId(1L);
+        Mockito.doReturn(dto).when(mapper).convert(certificate);
 
         GiftCertificateDto actual = service.findById(1L);
 
-        assertThat(actual.getName()).isEqualTo(CERT_NAME_SKYDIVING);
+        assertThat(actual.getId()).isEqualTo(1L);
     }
+
+    @Captor
+    ArgumentCaptor<Long> captor;
 
     @Test
-    void checkCreateShouldEquals() {
-        prepareMapperMockCreate();
-        prepareRepoMockCreate();
-        service = new GiftCertificateServiceImpl(repository, mapper);
-        GiftCertificateDto expected = getGiftCertificateDtoWithoutTags();
-        TagDto tag1 = createTagDto(1L, TAG_NAME_MALE);
-        TagDto tag3 = createTagDto(4L, TAG_NAME_TEST);
-        List<TagDto> tags = List.of(tag1, tag3);
-        expected.setTags(tags);
+    void delete() {
+        service.delete(1L);
+        Mockito.verify(certificateRepository).delete(captor.capture());
+        Long actual = captor.getValue();
 
-        GiftCertificateDto actual = service.create(getQueryParamsDto());
-
-        assertThat(actual).isEqualTo(expected);
-    }
-
-    private void prepareMapperMockCreate() {
-        mapper = Mockito.mock(Mapper.class);
-        QueryParamsDto paramsDto = getQueryParamsDto();
-        QueryParams params = getQueryParams();
-        Mockito.doReturn(params).when(mapper).convert(paramsDto);
-
-        Tag tag1 = createTag(1L, TAG_NAME_MALE);
-        TagDto tagDto1 = createTagDto(1L, TAG_NAME_MALE);
-        Tag tag3 = createTag(4L, TAG_NAME_TEST);
-        TagDto tagDto3 = createTagDto(4L, TAG_NAME_TEST);
-        GiftCertificate certCreate = getGiftCertificateWithoutTag();
-        GiftCertificateDto dtoCreate = getGiftCertificateDtoWithoutTags();
-        certCreate.setTags(List.of(tag1, tag3));
-        dtoCreate.setTags(List.of(tagDto1, tagDto3));
-        Mockito.doReturn(dtoCreate).when(mapper).convert(certCreate);
-    }
-
-    private void prepareRepoMockCreate() {
-        QueryParams params = getQueryParams();
-        GiftCertificate certificate = getGiftCertificateWithoutTag();
-        Mockito.doReturn(certificate).when(repository).createByParams(params);
-        Mockito.doReturn(Optional.empty()).when(repository).findTagByName(TAG_NAME_TEST);
-        Tag tag = createTag(1L, TAG_NAME_MALE);
-        Mockito.doReturn(Optional.of(tag)).when(repository).findTagByName(TAG_NAME_MALE);
-        Tag tagForCreation = new Tag();
-        tagForCreation.setName(TAG_NAME_TEST);
-        Tag createdTag = createTag(4L, TAG_NAME_TEST);
-        Mockito.doReturn(createdTag).when(repository).createTag(tagForCreation);
-    }
-
-    private GiftCertificateDto getGiftCertificateDtoWithoutTags() {
-        GiftCertificateDto certDto = new GiftCertificateDto();
-        certDto.setId(1L);
-        certDto.setName(TEST_NAME);
-        certDto.setDescription(TEST_DESCRIPTION);
-        certDto.setPrice(BigDecimal.valueOf(1.11));
-        certDto.setDuration(1);
-        return certDto;
+        assertThat(actual).isEqualTo(1L);
     }
 
     private TagDto createTagDto(Long id, String name) {
@@ -174,98 +245,10 @@ class GiftCertificateServiceImplTest {
         return tagDto;
     }
 
-    private QueryParamsDto getQueryParamsDto() {
-        QueryParamsDto paramsDto = new QueryParamsDto();
-        paramsDto.setCert(STD_CERT_PARAMS_CREATE_UPD);
-        paramsDto.setTag(STD_TAG_PARAMS_CREATE_UPD);
-        return paramsDto;
-    }
-
-    private QueryParams getQueryParams() {
-        QueryParams params = new QueryParams();
-        params.setCert(STD_CERT_PARAMS_CREATE_UPD);
-        params.setTag(STD_TAG_PARAMS_CREATE_UPD);
-        return params;
-    }
-
     private Tag createTag(Long id, String name) {
         Tag tag = new Tag();
         tag.setId(id);
         tag.setName(name);
         return tag;
-    }
-
-    private GiftCertificate getGiftCertificateWithoutTag() {
-        GiftCertificate certificate = new GiftCertificate();
-        certificate.setId(1L);
-        certificate.setName(TEST_NAME);
-        certificate.setDescription(TEST_DESCRIPTION);
-        certificate.setPrice(BigDecimal.valueOf(1.11));
-        certificate.setDuration(1);
-        return certificate;
-    }
-
-    @Test
-    void checkUpdateShouldReturnEquals() {
-        prepareMapperMockUpdate();
-        prepareRepoMockUpdate();
-        service = new GiftCertificateServiceImpl(repository, mapper);
-        GiftCertificateDto expected = getGiftCertificateDtoWithoutTags();
-        TagDto tagDto1 = createTagDto(1L, TAG_NAME_MALE);
-        TagDto tagDto2 = createTagDto(3L, TAG_NAME_EXTREME);
-        TagDto tagDto3 = createTagDto(4L, TAG_NAME_TEST);
-        List<TagDto> tagDtoList = List.of(tagDto1, tagDto2, tagDto3);
-        expected.setTags(tagDtoList);
-
-        GiftCertificateDto actual = service.update(getQueryParamsDto(), 1L);
-
-        assertThat(actual).isEqualTo(expected);
-    }
-
-    private void prepareMapperMockUpdate() {
-        mapper = Mockito.mock(Mapper.class);
-        QueryParamsDto paramsDto = getQueryParamsDto();
-        QueryParams params = getQueryParams();
-        Mockito.doReturn(params).when(mapper).convert(paramsDto);
-
-        Tag tag1 = createTag(1L, TAG_NAME_MALE);
-        TagDto tagDto1 = createTagDto(1L, TAG_NAME_MALE);
-        Tag tag3 = createTag(4L, TAG_NAME_TEST);
-        TagDto tagDto3 = createTagDto(4L, TAG_NAME_TEST);
-        GiftCertificate certUpd = getGiftCertificateWithoutTag();
-        GiftCertificateDto dtoUpd = getGiftCertificateDtoWithoutTags();
-        Tag tag2 = createTag(3L, TAG_NAME_EXTREME);
-        TagDto tagDto2 = createTagDto(3L, TAG_NAME_EXTREME);
-        certUpd.setTags(List.of(tag1, tag2, tag3));
-        dtoUpd.setTags(List.of(tagDto1, tagDto2, tagDto3));
-        Mockito.doReturn(dtoUpd).when(mapper).convert(certUpd);
-    }
-
-    private void prepareRepoMockUpdate() {
-        Tag tag1 = createTag(1L, TAG_NAME_MALE);
-        Tag tag2 = createTag(3L, TAG_NAME_EXTREME);
-        List<Tag> tags = new ArrayList<>();
-        tags.add(tag1);
-        tags.add(tag2);
-        Mockito.doReturn(tags).when(repository).findTagsByCertificateId(1L);
-        Tag tagForCreation = new Tag();
-        tagForCreation.setName(TAG_NAME_TEST);
-        Tag createdTag = createTag(4L, TAG_NAME_TEST);
-        Mockito.doReturn(createdTag).when(repository).createTag(tagForCreation);
-        QueryParams params = getQueryParams();
-        GiftCertificate cert = getGiftCertificateWithoutTag();
-        Mockito.doReturn(cert).when(repository).updateByParams(params, 1L);
-    }
-
-    @Captor
-    ArgumentCaptor<Long> captor;
-
-    @Test
-    void checkDeleteShouldCapture1() {
-        service.delete(1L);
-        Mockito.verify(repository).delete(captor.capture());
-        Long actual = captor.getValue();
-
-        assertThat(actual).isEqualTo(1L);
     }
 }
