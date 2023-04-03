@@ -1,9 +1,15 @@
 package ru.clevertec.ecl.data.repository;
 
 import java.util.List;
-import ru.clevertec.ecl.data.entity.QueryParams;
 
 public interface CrudRepository<T, K> {
+
+    /**
+     * serializes an object to the database
+     *
+     * @param entity the serializable object
+     * @return the same object from the database
+     */
     T create(T entity);
 
     /**
@@ -15,11 +21,13 @@ public interface CrudRepository<T, K> {
     T findById(K id);
 
     /**
-     * serializes all objects in the database
+     * serializes a list of objects
      *
+     * @param limit  sample size
+     * @param offset number of elements behind
      * @return serialized list of objects
      */
-    List<T> find(QueryParams queryParams);
+    List<T> findAll(int limit, long offset);
 
     /**
      * updates an object in the database
@@ -30,10 +38,7 @@ public interface CrudRepository<T, K> {
     T update(T entity);
 
     /**
-     * removes an object from the database
-     *
      * @param id object id
      */
     void delete(K id);
-
 }

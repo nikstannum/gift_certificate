@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.data.repository.dao.impl;
+package ru.clevertec.ecl.data.repository.impl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -14,12 +14,12 @@ import org.hibernate.Session;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.data.entity.Tag;
-import ru.clevertec.ecl.data.repository.dao.TagDao;
+import ru.clevertec.ecl.data.repository.TagRepository;
 
 @Component
 @RequiredArgsConstructor
 @Transactional
-public class TagDaoImpl implements TagDao {
+public class TagRepositoryImpl implements TagRepository {
     private static final String COL_ID = "id";
 
     @PersistenceContext

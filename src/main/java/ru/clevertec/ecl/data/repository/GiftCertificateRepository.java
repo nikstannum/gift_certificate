@@ -1,22 +1,17 @@
 package ru.clevertec.ecl.data.repository;
 
-import java.util.Optional;
+import java.util.List;
 import ru.clevertec.ecl.data.entity.GiftCertificate;
-import ru.clevertec.ecl.data.entity.Tag;
+import ru.clevertec.ecl.data.entity.QueryParams;
 
 public interface GiftCertificateRepository extends CrudRepository<GiftCertificate, Long> {
 
     /**
-     * serializes an object to the database
+     * serializes a list of objects by parameters, or all objects if there are no parameters. The default is sorted by ID. The size of the list is
+     * determined by the parameters. The default list size and maximum size is defined in @{@link ru.clevertec.ecl.data.repository.util.CriteriaQueryBuilder}
      *
-     * @param tag Tag without identifier
-     * @return Tag with identifier
+     * @param queryParams {@link ru.clevertec.ecl.data.entity.QueryParams} for {@link ru.clevertec.ecl.data.repository.util.CriteriaQueryBuilder}
+     * @return serialized list of objects
      */
-    Tag createTag(Tag tag);
-
-    /**
-     * @param name name of tag
-     * @return tag packed in Optional or empty Optional
-     */
-    Optional<Tag> findTagByName(String name);
+    List<GiftCertificate> findByParams(QueryParams queryParams);
 }

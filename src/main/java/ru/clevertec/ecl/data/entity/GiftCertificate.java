@@ -82,7 +82,7 @@ public class GiftCertificate {
                 ", duration=" + duration +
                 ", lastUpdateDate=" + lastUpdateDate +
                 ", createDate=" + createDate +
-                ", tags=" + tags.stream().map(Tag::getName).toList() +
+                ", tags=" + tags +
                 '}';
     }
 }
