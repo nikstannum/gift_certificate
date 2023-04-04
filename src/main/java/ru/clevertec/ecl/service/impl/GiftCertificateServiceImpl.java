@@ -22,7 +22,6 @@ import ru.clevertec.ecl.service.util.builder.CertificateBuilder;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     private static final String EXC_MSG_DESCR_EXISTS = "Certificate with such description already exists";
@@ -54,6 +53,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
+    @Transactional
     public GiftCertificateDto create(QueryParamsDto paramsDto) {
         QueryParams params = mapper.convert(paramsDto);
         if (isExistsWithSuchDescription(params)) {
@@ -120,6 +120,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
+    @Transactional
     public GiftCertificateDto update(QueryParamsDto paramsDto, Long id) {
         QueryParams params = mapper.convert(paramsDto);
         if (isExistsWithSuchDescription(params)) {
@@ -181,6 +182,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         certificateRepository.delete(id);
     }

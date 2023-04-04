@@ -16,7 +16,6 @@ import ru.clevertec.ecl.data.repository.TagRepository;
 @RequiredArgsConstructor
 @Transactional
 public class TagRepositoryImpl implements TagRepository {
-    private static final String COL_ID = "id";
 
     @PersistenceContext
     private EntityManager manager;

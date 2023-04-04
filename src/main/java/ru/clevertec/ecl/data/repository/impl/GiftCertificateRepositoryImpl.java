@@ -18,8 +18,6 @@ import ru.clevertec.ecl.data.repository.util.CriteriaQueryBuilder;
 @Transactional
 public class GiftCertificateRepositoryImpl implements GiftCertificateRepository {
 
-    private static final String COL_ID = "id";
-
     private final CriteriaQueryBuilder criteriaBuilder;
 
     @PersistenceContext
