@@ -1,20 +1,35 @@
 plugins {
     id 'java'
-    id 'war'
+    id 'org.springframework.boot' version '3.0.5'
+    id 'io.spring.dependency-management' version '1.1.0'
 }
 
 group 'ru.clevertec'
 version '1.0-SNAPSHOT'
+sourceCompatibility = '17'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.26'
-    annotationProcessor 'org.projectlombok:lombok:1.18.26'
-    implementation 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.h2database:h2'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    implementation 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
     implementation 'org.mapstruct:mapstruct:1.5.3.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
     testImplementation 'org.mapstruct:mapstruct:1.5.3.Final'
@@ -25,24 +40,8 @@ dependencies {
         ]
     }
 
-    implementation 'org.postgresql:postgresql:42.6.0'
-    testImplementation 'com.h2database:h2:2.1.214'
-
-    implementation 'com.zaxxer:HikariCP:5.0.1'
-
-    implementation 'org.springframework:spring-context-support:6.0.0'
-    implementation 'org.springframework:spring-jdbc:6.0.0'
-    implementation 'org.springframework:spring-webmvc:6.0.0'
-    testImplementation 'org.springframework:spring-test:6.0.0'
-    implementation 'org.springframework:spring-orm:6.0.0'
-
-    compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.0'
-
     implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
     implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
-
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.0-rc1'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.0-rc1'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
@@ -52,16 +51,8 @@ dependencies {
 
     testImplementation 'org.mockito:mockito-core:5.2.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'
-
-    implementation 'org.hibernate:hibernate-core:6.0.0.Final'
-
-    war {
-        archiveFileName = 'gift.war'
-        final String targetDir = System.getenv('TOMCAT_HOME')
-        destinationDirectory = file("${targetDir}/webapps")
-    }
 }
 
-test {
+tasks.named('test') {
     useJUnitPlatform()
 }

@@ -10,7 +10,6 @@ import ru.clevertec.ecl.service.dto.ErrorDto;
 import ru.clevertec.ecl.service.exception.ClevertecException;
 import ru.clevertec.ecl.service.exception.ClientException;
 import ru.clevertec.ecl.service.exception.NotFoundException;
-import ru.clevertec.ecl.service.util.serializer.Serializer;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -21,37 +20,31 @@ public class RestExceptionAdvice {
     private static final String DEFAULT_MSG = "Unknown error";
     private static final String CODE_DEFAULT = "50000";
 
-    private final Serializer serializer;
-
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String error(NotFoundException e) {
+    public ErrorDto error(NotFoundException e) {
         log.error(e);
-        ErrorDto dto = new ErrorDto(MSG_CLIENT_ERROR, e.getMessage(), e.getCode());
-        return serializer.serialize(dto);
+        return new ErrorDto(MSG_CLIENT_ERROR, e.getMessage(), e.getCode());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String error(ClientException e) {
+    public ErrorDto error(ClientException e) {
         log.error(e);
-        ErrorDto dto = new ErrorDto(MSG_CLIENT_ERROR, e.getMessage(), e.getCode());
-        return serializer.serialize(dto);
+        return new ErrorDto(MSG_CLIENT_ERROR, e.getMessage(), e.getCode());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public String error(ClevertecException e) {
+    public ErrorDto error(ClevertecException e) {
         log.error(e);
-        ErrorDto dto = new ErrorDto(MSG_SERVER_ERROR, e.getMessage(), e.getCode());
-        return serializer.serialize(dto);
+        return new ErrorDto(MSG_SERVER_ERROR, e.getMessage(), e.getCode());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public String error(Exception e) {
+    public ErrorDto error(Exception e) {
         log.error(e);
-        ErrorDto dto = new ErrorDto(MSG_SERVER_ERROR, DEFAULT_MSG, CODE_DEFAULT);
-        return serializer.serialize(dto);
+        return new ErrorDto(MSG_SERVER_ERROR, DEFAULT_MSG, CODE_DEFAULT);
     }
 }

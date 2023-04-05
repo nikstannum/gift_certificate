@@ -3,9 +3,7 @@ package ru.clevertec.ecl.web.controller;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +19,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.clevertec.ecl.service.GiftCertificateService;
 import ru.clevertec.ecl.service.dto.GiftCertificateDto;
 import ru.clevertec.ecl.service.dto.QueryParamsDto;
-import ru.clevertec.ecl.service.util.serializer.Serializer;
 
 /**
  * Rest Controller for  creating, updating, deleting and getting certificates.
@@ -39,7 +36,6 @@ import ru.clevertec.ecl.service.util.serializer.Serializer;
 public class RestCertificateController {
 
     private final GiftCertificateService giftCertificateService;
-    private final Serializer serializer;
 
     @ModelAttribute
     public QueryParamsDto paramsDto() {
@@ -53,50 +49,43 @@ public class RestCertificateController {
     }
 
     @PostMapping()
-    public ResponseEntity<String> create(@ModelAttribute QueryParamsDto paramsDto) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<GiftCertificateDto> create(@ModelAttribute QueryParamsDto paramsDto) {
         GiftCertificateDto created = giftCertificateService.create(paramsDto);
         return buildResponseCreated(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> update(@ModelAttribute QueryParamsDto paramsDto, @PathVariable Long id) {
-        GiftCertificateDto updated = giftCertificateService.update(paramsDto, id);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new ResponseEntity<>(serializer.serialize(updated), headers, HttpStatus.OK);
+    @ResponseStatus(HttpStatus.OK)
+    public GiftCertificateDto update(@ModelAttribute QueryParamsDto paramsDto, @PathVariable Long id) {
+        return giftCertificateService.update(paramsDto, id);
     }
 
     @GetMapping()
-    public ResponseEntity<String> findByParams(@ModelAttribute("paramsDto") QueryParamsDto paramsDto) {
-        List<GiftCertificateDto> list = giftCertificateService.findByParams(paramsDto);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new ResponseEntity<>(serializer.serialize(list), headers, HttpStatus.OK);
+    @ResponseStatus(HttpStatus.OK)
+    public List<GiftCertificateDto> findByParams(@ModelAttribute("paramsDto") QueryParamsDto paramsDto) {
+        return giftCertificateService.findByParams(paramsDto);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<String> findAll(@RequestParam(required = false) String page, @RequestParam(required = false) String size) {
+    @ResponseStatus(HttpStatus.OK)
+    public List<GiftCertificateDto> findAll(@RequestParam(required = false) String page, @RequestParam(required = false) String size) {
         QueryParamsDto dto = new QueryParamsDto();
         dto.setPage(page);
         dto.setSize(size);
-        List<GiftCertificateDto> list = giftCertificateService.findAll(dto);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new ResponseEntity<>(serializer.serialize(list), headers, HttpStatus.OK);
+        return giftCertificateService.findAll(dto);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<String> getById(@PathVariable Long id) {
-        GiftCertificateDto dto = giftCertificateService.findById(id);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new ResponseEntity<>(serializer.serialize(dto), headers, HttpStatus.OK);
+    @ResponseStatus(HttpStatus.OK)
+    public GiftCertificateDto getById(@PathVariable Long id) {
+        return giftCertificateService.findById(id);
     }
 
-    private ResponseEntity<String> buildResponseCreated(GiftCertificateDto created) {
+    private ResponseEntity<GiftCertificateDto> buildResponseCreated(GiftCertificateDto created) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .location(getLocation(created))
-                .body(serializer.serialize(created));
+                .body(created);
     }
 
     private URI getLocation(GiftCertificateDto created) {
