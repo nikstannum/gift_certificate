@@ -1,33 +1,8 @@
 package ru.clevertec.ecl.data.repository;
 
-public interface CrudRepository<T, K> {
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.NoRepositoryBean;
 
-    /**
-     * serializes an object to the database
-     *
-     * @param entity the serializable object
-     * @return the same object from the database
-     */
-    T create(T entity);
-
-    /**
-     * serializes an object from the database
-     *
-     * @param id the object id
-     * @return this object
-     */
-    T findById(K id);
-
-    /**
-     * updates an object in the database
-     *
-     * @param entity the object itself
-     * @return this updated object
-     */
-    T update(T entity);
-
-    /**
-     * @param id object id
-     */
-    void delete(K id);
+@NoRepositoryBean
+public interface CrudRepository<T, K> extends JpaRepository<T, K> {
 }

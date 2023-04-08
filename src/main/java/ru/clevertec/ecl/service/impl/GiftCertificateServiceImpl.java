@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.data.entity.GiftCertificate;
@@ -18,7 +21,9 @@ import ru.clevertec.ecl.service.dto.QueryParamsDto;
 import ru.clevertec.ecl.service.exception.ClientException;
 import ru.clevertec.ecl.service.exception.NotFoundException;
 import ru.clevertec.ecl.service.mapper.Mapper;
-import ru.clevertec.ecl.service.util.builder.CertificateBuilder;
+import ru.clevertec.ecl.service.util.CertificateBuilder;
+import ru.clevertec.ecl.service.util.PagingUtil;
+import ru.clevertec.ecl.service.util.SpecificationBuilder;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +41,8 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private final GiftCertificateRepository certificateRepository;
     private final TagRepository tagRepository;
     private final CertificateBuilder certificateBuilder;
+    private final SpecificationBuilder specificationBuilder;
+    private final PagingUtil pagingUtil;
     private final Mapper mapper;
 
     private List<Tag> getTagsForCreation(List<Tag> acceptedTags) {
@@ -44,7 +51,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
         List<Tag> tagsForCreation = new ArrayList<>();
         for (Tag acceptedTag : acceptedTags) {
-            Optional<Tag> tagFromDb = tagRepository.findTagByName(acceptedTag.getName());
+            Optional<Tag> tagFromDb = tagRepository.findByName(acceptedTag.getName());
             if (tagFromDb.isEmpty()) {
                 tagsForCreation.add(acceptedTag);
             }
@@ -54,7 +61,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     @Override
     @Transactional
-    public GiftCertificateDto create(QueryParamsDto paramsDto) {
+    public GiftCertificateDto createByParams(QueryParamsDto paramsDto) {
         QueryParams params = mapper.convert(paramsDto);
         if (isExistsWithSuchDescription(params)) {
             throw new ClientException(EXC_MSG_DESCR_EXISTS, CODE_CERT_UPD);
@@ -64,7 +71,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         List<Tag> tagsForCreation = getTagsForCreation(certificateForCreation.getTags());
         List<Tag> createdTags = new ArrayList<>();
         for (Tag tag : tagsForCreation) {
-            createdTags.add(tagRepository.create(tag));
+            createdTags.add(tagRepository.save(tag));
         }
         List<Tag> tags = new ArrayList<>();
         if (!existingTags.isEmpty()) {
@@ -74,7 +81,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
             tags.addAll(createdTags);
         }
         certificateForCreation.setTags(tags);
-        GiftCertificate created = certificateRepository.create(certificateForCreation);
+        GiftCertificate created = certificateRepository.save(certificateForCreation);
         return mapper.convert(created);
     }
 
@@ -100,7 +107,8 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         String descr = ALIAS_DESCR + COLON + OP_EQ + COLON + descrVal;
         QueryParams queryParams = new QueryParams();
         queryParams.setCert(descr);
-        List<GiftCertificate> list = certificateRepository.findByParams(queryParams);
+        Specification<GiftCertificate> specification = specificationBuilder.getSpecifications(queryParams);
+        List<GiftCertificate> list = certificateRepository.findAll(specification);
         return !list.isEmpty();
     }
 
@@ -121,7 +129,21 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     @Override
     @Transactional
-    public GiftCertificateDto update(QueryParamsDto paramsDto, Long id) {
+    public GiftCertificateDto update(GiftCertificateDto dto) {
+        GiftCertificate entity = mapper.convert(dto);
+        return mapper.convert(certificateRepository.saveAndFlush(entity));
+    }
+
+    @Override
+    @Transactional
+    public GiftCertificateDto create(GiftCertificateDto dto) {
+        GiftCertificate entity = mapper.convert(dto);
+        return mapper.convert(certificateRepository.save(entity));
+    }
+
+    @Override
+    @Transactional
+    public GiftCertificateDto updateByParams(QueryParamsDto paramsDto, Long id) {
         QueryParams params = mapper.convert(paramsDto);
         if (isExistsWithSuchDescription(params)) {
             throw new ClientException(EXC_MSG_DESCR_EXISTS, CODE_CERT_UPD);
@@ -131,7 +153,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         List<Tag> tagsForCreation = getTagsForCreation(certWithAcceptedParams.getTags());
         List<Tag> createdTags = new ArrayList<>();
         for (Tag tag : tagsForCreation) {
-            createdTags.add(tagRepository.create(tag));
+            createdTags.add(tagRepository.save(tag));
         }
         List<Tag> tags = new ArrayList<>();
         if (!existingTags.isEmpty()) {
@@ -142,9 +164,10 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
         certWithAcceptedParams.setTags(tags);
         certWithAcceptedParams.setId(id);
-        GiftCertificate fromDb = certificateRepository.findById(id);
+        GiftCertificate fromDb = certificateRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(EXC_MSG_NOT_FOUND_ID + id, CODE_CLIENT_CERT_READ));
         updateFields(fromDb, certWithAcceptedParams);
-        GiftCertificate updated = certificateRepository.update(fromDb);
+        GiftCertificate updated = certificateRepository.saveAndFlush(fromDb);
         return mapper.convert(updated);
     }
 
@@ -154,36 +177,38 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
         List<Tag> existingTags = new ArrayList<>();
         for (Tag tag : tags) {
-            Optional<Tag> optionalTag = tagRepository.findTagByName(tag.getName());
+            Optional<Tag> optionalTag = tagRepository.findByName(tag.getName());
             optionalTag.ifPresent(existingTags::add);
         }
         return existingTags;
     }
 
+
     @Override
-    public List<GiftCertificateDto> findAll(QueryParamsDto paramsDto) {
-        return findByParams(paramsDto);
+    public Page<GiftCertificateDto> findAll(Pageable pageable) {
+        Page<GiftCertificate> page = certificateRepository.findAll(pageable);
+        return page.map(mapper::convert);
     }
 
     @Override
     public List<GiftCertificateDto> findByParams(QueryParamsDto paramsDto) {
         QueryParams params = mapper.convert(paramsDto);
-        List<GiftCertificate> certificates = certificateRepository.findByParams(params);
+        Specification<GiftCertificate> specification = specificationBuilder.getSpecifications(params);
+        Pageable pageable = pagingUtil.getPageable(params);
+        Page<GiftCertificate> certificates = certificateRepository.findAll(specification, pageable);
         return certificates.stream().map(mapper::convert).toList();
     }
 
     @Override
     public GiftCertificateDto findById(Long id) {
-        GiftCertificate certificate = certificateRepository.findById(id);
-        if (certificate == null) {
-            throw new NotFoundException(EXC_MSG_NOT_FOUND_ID + id, CODE_CLIENT_CERT_READ);
-        }
+        GiftCertificate certificate = certificateRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(EXC_MSG_NOT_FOUND_ID + id, CODE_CLIENT_CERT_READ));
         return mapper.convert(certificate);
     }
 
     @Override
     @Transactional
     public void delete(Long id) {
-        certificateRepository.delete(id);
+        certificateRepository.deleteById(id);
     }
 }

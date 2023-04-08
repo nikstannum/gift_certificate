@@ -4,10 +4,5 @@ import java.util.Optional;
 import ru.clevertec.ecl.data.entity.Tag;
 
 public interface TagRepository extends CrudRepository<Tag, Long> {
-
-    /**
-     * @param tagName name of tag
-     * @return tag packed in Optional or empty Optional
-     */
-    Optional<Tag> findTagByName(String tagName);
+    Optional<Tag> findByName(String name);
 }

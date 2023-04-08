@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.service.util.builder;
+package ru.clevertec.ecl.service.util;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

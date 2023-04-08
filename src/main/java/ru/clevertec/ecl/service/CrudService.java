@@ -1,17 +1,9 @@
 package ru.clevertec.ecl.service;
 
-import java.util.List;
-import ru.clevertec.ecl.service.dto.QueryParamsDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CrudService<T, K> {
-
-    /**
-     * creates an object based on the received parameters
-     *
-     * @param paramsDto parameters
-     * @return serialized object
-     */
-    T create(QueryParamsDto paramsDto);
 
     /**
      * get object by id
@@ -22,32 +14,28 @@ public interface CrudService<T, K> {
     T findById(K id);
 
     /**
-     * gets a list of objects by parameters or all objects if there are no parameters. The default is sorted by ID. The size of the list is
-     * determined by the parameters. The default list size and maximum size is defined
-     * in @{@link ru.clevertec.ecl.data.repository.util.CriteriaQueryBuilder}
-     *
-     * @param paramsDto parameters
-     * @return serialized list of objects
-     */
-    List<T> findByParams(QueryParamsDto paramsDto);
-
-    /**
-     * gets a list of all objects. The default is sorted by ID. The size of the list is determined by the parameters. The default list size
-     * and maximum size is defined in @{@link ru.clevertec.ecl.data.repository.util.CriteriaQueryBuilder}
-     *
-     * @param paramsDto parameters
-     * @return serialized list of objects
-     */
-    List<T> findAll(QueryParamsDto paramsDto);
-
-    /**
      * updates an object
      *
-     * @param paramsDto parameters
-     * @param id        object identifier
+     * @param dto object for updating
      * @return updated object
      */
-    T update(QueryParamsDto paramsDto, Long id);
+    T update(T dto);
+
+    /**
+     * get paging objects
+     *
+     * @param pageable {@link org.springframework.data.domain.Pageable}
+     * @return page of objects
+     */
+    Page<T> findAll(Pageable pageable);
+
+    /**
+     * creates an object
+     *
+     * @param dto object for creation
+     * @return created object
+     */
+    T create(T dto);
 
     /**
      * @param id object identifier

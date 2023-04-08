@@ -1,13 +1,17 @@
 package ru.clevertec.ecl.web.controller;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -19,6 +23,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ru.clevertec.ecl.service.GiftCertificateService;
 import ru.clevertec.ecl.service.dto.GiftCertificateDto;
 import ru.clevertec.ecl.service.dto.QueryParamsDto;
+import ru.clevertec.ecl.service.exception.ClientException;
 
 /**
  * Rest Controller for  creating, updating, deleting and getting certificates.
@@ -51,14 +56,14 @@ public class RestCertificateController {
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<GiftCertificateDto> create(@ModelAttribute QueryParamsDto paramsDto) {
-        GiftCertificateDto created = giftCertificateService.create(paramsDto);
+        GiftCertificateDto created = giftCertificateService.createByParams(paramsDto);
         return buildResponseCreated(created);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public GiftCertificateDto update(@ModelAttribute QueryParamsDto paramsDto, @PathVariable Long id) {
-        return giftCertificateService.update(paramsDto, id);
+        return giftCertificateService.updateByParams(paramsDto, id);
     }
 
     @GetMapping()
@@ -69,17 +74,31 @@ public class RestCertificateController {
 
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
-    public List<GiftCertificateDto> findAll(@RequestParam(required = false) String page, @RequestParam(required = false) String size) {
-        QueryParamsDto dto = new QueryParamsDto();
-        dto.setPage(page);
-        dto.setSize(size);
-        return giftCertificateService.findAll(dto);
+    public Page<GiftCertificateDto> findAll(Pageable pageable) {
+        return giftCertificateService.findAll(pageable);
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public GiftCertificateDto getById(@PathVariable Long id) {
         return giftCertificateService.findById(id);
+    }
+
+    @PatchMapping("/{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public GiftCertificateDto updatePrice(@PathVariable Long id, @RequestParam(value = "price") String priceStr) {
+        GiftCertificateDto dto = giftCertificateService.findById(id);
+        BigDecimal price;
+        try {
+            price = new BigDecimal(priceStr);
+        } catch (NumberFormatException e) {
+            throw new ClientException("invalid price value", e, "40031");
+        }
+        if (price.scale() > 2) {
+            throw new ClientException("scale cannot be more than two", "40031");
+        }
+        dto.setPrice(price);
+        return giftCertificateService.update(dto);
     }
 
     private ResponseEntity<GiftCertificateDto> buildResponseCreated(GiftCertificateDto created) {
