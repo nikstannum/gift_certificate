@@ -7,6 +7,10 @@ import ru.clevertec.ecl.data.entity.GiftCertificate;
 import ru.clevertec.ecl.data.entity.QueryParams;
 import ru.clevertec.ecl.data.entity.Tag;
 
+/**
+ * util class to get {@link org.springframework.data.jpa.domain.Specification} for working with
+ * {@link org.springframework.data.jpa.repository.JpaSpecificationExecutor}
+ */
 @Component
 public class SpecificationBuilder {
 
@@ -21,7 +25,7 @@ public class SpecificationBuilder {
     public static final String DESCR_LIKE = "descr:like:";
     public static final String DESCR_EQ = "descr:eq:";
 
-    public Specification<GiftCertificate> getSpecifications(QueryParams queryParams) {
+    public Specification<GiftCertificate> getSpecificationsSelectCertificateByParams(QueryParams queryParams) {
         Specification<GiftCertificate> specCertName = getCertNameSpec(queryParams);
         Specification<GiftCertificate> specCertDescr = getCertDescrSpec(queryParams);
         Specification<GiftCertificate> specTagName = getTagSpec(queryParams);
@@ -74,13 +78,16 @@ public class SpecificationBuilder {
             if (params == null) {
                 return null;
             }
-            String value = params.split(COLON)[2];
-            Join<GiftCertificate, Tag> join = root.join(CERT_ATTR_TAGS);
-            if (params.startsWith(NAME_LIKE)) {
-                return cb.like(join.get(ATTRIBUTE_NAME), PATTERN_PERCENT + value + PATTERN_PERCENT);
-            }
-            if (params.startsWith(NAME_EQ)) {
-                return cb.equal(join.get(ATTRIBUTE_NAME), value);
+            String[] paramsArr = params.split(COMMA);
+            for (String param : paramsArr) {
+                String value = param.split(COLON)[2];
+                Join<GiftCertificate, Tag> join = root.join(CERT_ATTR_TAGS);
+                if (params.startsWith(NAME_LIKE)) {
+                    return cb.like(join.get(ATTRIBUTE_NAME), PATTERN_PERCENT + value + PATTERN_PERCENT);
+                }
+                if (params.startsWith(NAME_EQ)) {
+                    return cb.equal(join.get(ATTRIBUTE_NAME), value);
+                }
             }
             return null;
         };

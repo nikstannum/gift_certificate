@@ -59,6 +59,14 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         return tagsForCreation;
     }
 
+    /**
+     * a method that creates a certificate according to the parameters received from the user and sends it for further serialization to the
+     * database. If the received parameters contain tags that do not exist in the database, then these tags are sent for further serialization to
+     * the database. If a certificate with this description already exists, an exception will be thrown
+     *
+     * @param paramsDto accepted parameters
+     * @return a newly created certificate with a list of tags
+     */
     @Override
     @Transactional
     public GiftCertificateDto createByParams(QueryParamsDto paramsDto) {
@@ -107,7 +115,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         String descr = ALIAS_DESCR + COLON + OP_EQ + COLON + descrVal;
         QueryParams queryParams = new QueryParams();
         queryParams.setCert(descr);
-        Specification<GiftCertificate> specification = specificationBuilder.getSpecifications(queryParams);
+        Specification<GiftCertificate> specification = specificationBuilder.getSpecificationsSelectCertificateByParams(queryParams);
         List<GiftCertificate> list = certificateRepository.findAll(specification);
         return !list.isEmpty();
     }
@@ -127,6 +135,12 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         }
     }
 
+    /**
+     * renews an existing certificate
+     *
+     * @param dto object for updating
+     * @return updated certificate
+     */
     @Override
     @Transactional
     public GiftCertificateDto update(GiftCertificateDto dto) {
@@ -134,6 +148,12 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         return mapper.convert(certificateRepository.saveAndFlush(entity));
     }
 
+    /**
+     * creates and sends a new certificate to the database for further serialization
+     *
+     * @param dto object for creation
+     * @return returns the newly created certificate
+     */
     @Override
     @Transactional
     public GiftCertificateDto create(GiftCertificateDto dto) {
@@ -141,6 +161,15 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         return mapper.convert(certificateRepository.save(entity));
     }
 
+    /**
+     * renews the certificate according to the accepted parameters. If non-existing tags are passed in the parameters, then these tags will be
+     * created and serialized to the database If a certificate with this description already exists, an exception will be
+     * thrown
+     *
+     * @param paramsDto accepted parameters
+     * @param id        object identifier
+     * @return updated certificate
+     */
     @Override
     @Transactional
     public GiftCertificateDto updateByParams(QueryParamsDto paramsDto, Long id) {
@@ -183,22 +212,40 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         return existingTags;
     }
 
-
+    /**
+     * method returning a paginated list of certificates with their tags. The default and maximum page size is defined in the application.yaml file
+     *
+     * @param pageable abstract interface for pagination information
+     * @return the paginated list of certificates
+     */
     @Override
     public Page<GiftCertificateDto> findAll(Pageable pageable) {
         Page<GiftCertificate> page = certificateRepository.findAll(pageable);
         return page.map(mapper::convert);
     }
 
+    /**
+     * method returning a list of certificates by accepted parameters. The pagination is provided with query parameters. The default values, as
+     * well as the maximum values for page size and page number, are defined in {@link ru.clevertec.ecl.service.util.PagingUtil}
+     *
+     * @param paramsDto accepted parameters
+     * @return list of certificates
+     */
     @Override
     public List<GiftCertificateDto> findByParams(QueryParamsDto paramsDto) {
         QueryParams params = mapper.convert(paramsDto);
-        Specification<GiftCertificate> specification = specificationBuilder.getSpecifications(params);
+        Specification<GiftCertificate> specification = specificationBuilder.getSpecificationsSelectCertificateByParams(params);
         Pageable pageable = pagingUtil.getPageable(params);
         Page<GiftCertificate> certificates = certificateRepository.findAll(specification, pageable);
         return certificates.stream().map(mapper::convert).toList();
     }
 
+    /**
+     * returns a certificate by its id
+     *
+     * @param id object identifier
+     * @return the requested certificate
+     */
     @Override
     public GiftCertificateDto findById(Long id) {
         GiftCertificate certificate = certificateRepository.findById(id)
@@ -206,6 +253,11 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         return mapper.convert(certificate);
     }
 
+    /**
+     * removes a certificate by its ID
+     *
+     * @param id object identifier
+     */
     @Override
     @Transactional
     public void delete(Long id) {

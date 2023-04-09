@@ -30,6 +30,12 @@ public class UserServiceImpl implements UserService {
     private final Mapper mapper;
     private final UserRepository userRepository;
 
+    /**
+     * returns the user by the given id
+     *
+     * @param id object identifier
+     * @return the requested object
+     */
     @Override
     public UserDto findById(Long id) {
         User user = userRepository.findById(id)
@@ -44,6 +50,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * updates an existing user. If the given email already exists, an exception will be thrown
+     *
+     * @param dto object for updating
+     * @return the updated object
+     */
     @Override
     public UserDto update(UserDto dto) {
         validateUpdate(dto);
@@ -59,6 +71,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * creates a new user. If a user with this email already exists, an exception will be thrown
+     *
+     * @param dto object for creation
+     * @return created object
+     */
     @Override
     public UserDto create(UserDto dto) {
         validateCreate(dto);
@@ -67,6 +85,11 @@ public class UserServiceImpl implements UserService {
         return mapper.convert(updated);
     }
 
+    /**
+     * delete user by id. If there is no user with this id then an exception will be thrown
+     *
+     * @param id object identifier
+     */
     @Override
     public void delete(Long id) {
         User user = userRepository.findById(id)
@@ -75,6 +98,12 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    /**
+     * return user by email
+     *
+     * @param email user email
+     * @return the requested object
+     */
     @Override
     public UserDto findUserByEmail(String email) {
         User user = userRepository.findUserByEmail(email);
@@ -84,10 +113,16 @@ public class UserServiceImpl implements UserService {
         return mapper.convert(user);
     }
 
+    /**
+     * returns a paginated list of all users
+     *
+     * @param pageable abstract interface for pagination information
+     * @return page of objects
+     */
     @Override
     public Page<UserDto> findAll(Pageable pageable) {
         Sort sort = pageable.getSort();
-        if (sort.isSorted()) {
+        if (!sort.isSorted()) {
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Direction.ASC, COLUMN_ID);
         }
         Page<User> userPage = userRepository.findAll(pageable);

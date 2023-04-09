@@ -4,6 +4,9 @@ import jakarta.persistence.AttributeConverter;
 import org.springframework.stereotype.Component;
 import ru.clevertec.ecl.data.entity.User.UserRole;
 
+/**
+ * converter class that converts enum value to identifier and vice versa
+ */
 @Component
 public class UserRoleConverter implements AttributeConverter<UserRole, Long> {
     @Override

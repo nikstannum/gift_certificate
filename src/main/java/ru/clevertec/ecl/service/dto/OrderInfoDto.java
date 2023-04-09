@@ -2,6 +2,7 @@ package ru.clevertec.ecl.service.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.math.BigDecimal;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,4 +15,5 @@ public class OrderInfoDto {
     private GiftCertificateDto giftCertificateDto;
     private Integer certificateQuantity;
     private BigDecimal certificatePrice;
+    private Instant createDate;
 }

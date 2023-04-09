@@ -10,6 +10,9 @@ import ru.clevertec.ecl.data.entity.QueryParams;
 import ru.clevertec.ecl.data.entity.Tag;
 import ru.clevertec.ecl.service.exception.ClientException;
 
+/**
+ * class that creates a certificate based on request parameters
+ */
 @Component
 public class CertificateBuilder {
 
@@ -19,12 +22,14 @@ public class CertificateBuilder {
     public static final String FIELD_DURATION = "duration";
     public static final String CODE_BAD_REQUEST = "40000";
     public static final String EXC_MSG_INVALID_PRICE_DURATION = "Invalid value price or duration";
+    public static final String COMMA = ",";
+    public static final String COLON = ":";
 
     public GiftCertificate buildCertificate(QueryParams queryParams) {
         GiftCertificate certificate = new GiftCertificate();
         String params = queryParams.getCert();
         if (params != null) {
-            String[] paramsArr = params.split(",");
+            String[] paramsArr = params.split(COMMA);
             for (String param : paramsArr) {
                 setField(param, certificate);
             }
@@ -39,10 +44,10 @@ public class CertificateBuilder {
             certificate.setTags(Collections.emptyList());
             return;
         }
-        String[] tagsArr = tagsStr.split(",");
+        String[] tagsArr = tagsStr.split(COMMA);
         List<Tag> tags = new ArrayList<>();
         for (String tagParam : tagsArr) {
-            String tagName = tagParam.split(":")[1];
+            String tagName = tagParam.split(COLON)[1];
             Tag tag = new Tag();
             tag.setName(tagName);
             tags.add(tag);
@@ -51,7 +56,7 @@ public class CertificateBuilder {
     }
 
     private void setField(String param, GiftCertificate certificate) {
-        String[] fieldValueArr = param.split(":");
+        String[] fieldValueArr = param.split(COLON);
         String field = fieldValueArr[0];
         String value = fieldValueArr[1];
         try {

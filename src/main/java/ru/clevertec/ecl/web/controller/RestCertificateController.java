@@ -26,14 +26,13 @@ import ru.clevertec.ecl.service.dto.QueryParamsDto;
 import ru.clevertec.ecl.service.exception.ClientException;
 
 /**
- * Rest Controller for  creating, updating, deleting and getting certificates.
+ * Rest Controller for  creating, updating, deleting and getting certificates by parameters.
  * <p>
- * Contracts for the verb GET:
+ * General contract for the verb GET:
  * url/api/certificates?cert=name:like:skydiv,descr:like:airpl&tag=name:like:extr&order=date:desc&page=18&size=11
- * url/api/certificates?cert=name:eq:skydiving&tag=name:eq:extreme&order=date&page=18&size=11
  * <p>
- * Contract for the verbs POST, PUT:
- * url/cert=name:massage,descr:back massage lasting 1 hour,price:123.45,duration:12&tag=name:health,name:beauty
+ * General contract for the verbs POST, PUT:
+ * url/api/certificates?cert=name:massage,descr:back massage lasting 1 hour,price:123.45,duration:12&tag=name:health,name:beauty
  */
 @RestController
 @RequestMapping("api/certificates")
@@ -53,6 +52,14 @@ public class RestCertificateController {
         giftCertificateService.delete(id);
     }
 
+    /**
+     * endpoint for certificate generation by request parameters.
+     * Mapping examples:
+     * for 1 tag:
+     * url/api/certificates?cert=name:massage,descr:back massage lasting 1 hour,price:123.45,duration:12&tag=name:health
+     * for 2 tags:
+     * url/api/certificates?cert=name:massage,descr:back massage lasting 1 hour,price:123.45,duration:12&tag=name:health,name:beauty
+     */
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<GiftCertificateDto> create(@ModelAttribute QueryParamsDto paramsDto) {
@@ -60,6 +67,14 @@ public class RestCertificateController {
         return buildResponseCreated(created);
     }
 
+    /**
+     * endpoint to renew an existing certificate by request parameters
+     * Mapping examples:
+     * for 1 tag:
+     * url/api/certificates/1?cert=name:massage,descr:back massage lasting 1 hour,price:123.45,duration:12&tag=name:health
+     * for 2 tags:
+     * url/api/certificates/1?cert=name:massage,descr:back massage lasting 1 hour,price:123.45,duration:12&tag=name:health,name:beauty
+     */
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public GiftCertificateDto update(@ModelAttribute QueryParamsDto paramsDto, @PathVariable Long id) {
@@ -84,6 +99,11 @@ public class RestCertificateController {
         return giftCertificateService.findById(id);
     }
 
+    /**
+     * endpoint to update the price of an existing certificate
+     * Mapping example:
+     *  url/api/certificates/1?price:123.45
+     */
     @PatchMapping("/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public GiftCertificateDto updatePrice(@PathVariable Long id, @RequestParam(value = "price") String priceStr) {

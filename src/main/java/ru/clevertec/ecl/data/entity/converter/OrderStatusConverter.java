@@ -4,6 +4,9 @@ import jakarta.persistence.AttributeConverter;
 import org.springframework.stereotype.Component;
 import ru.clevertec.ecl.data.entity.Order.Status;
 
+/**
+ * converter class that converts enum value to identifier and vice versa
+ */
 @Component
 public class OrderStatusConverter implements AttributeConverter<Status, Long> {
     @Override

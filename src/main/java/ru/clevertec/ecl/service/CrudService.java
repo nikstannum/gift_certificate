@@ -24,7 +24,7 @@ public interface CrudService<T, K> {
     /**
      * get paging objects
      *
-     * @param pageable {@link org.springframework.data.domain.Pageable}
+     * @param pageable abstract interface for pagination information
      * @return page of objects
      */
     Page<T> findAll(Pageable pageable);
@@ -38,6 +38,8 @@ public interface CrudService<T, K> {
     T create(T dto);
 
     /**
+     * removes an object by its id
+     *
      * @param id object identifier
      */
     void delete(K id);

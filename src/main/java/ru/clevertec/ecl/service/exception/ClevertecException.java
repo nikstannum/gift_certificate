@@ -2,6 +2,9 @@ package ru.clevertec.ecl.service.exception;
 
 import lombok.Getter;
 
+/**
+ * the main class of exceptions handled in the application
+ */
 @Getter
 public class ClevertecException extends RuntimeException {
 

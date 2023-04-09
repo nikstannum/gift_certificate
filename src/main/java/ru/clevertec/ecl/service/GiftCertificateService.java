@@ -6,7 +6,7 @@ import ru.clevertec.ecl.service.dto.QueryParamsDto;
 
 public interface GiftCertificateService extends CrudService<GiftCertificateDto, Long> {
     /**
-     * gets a list of objects by parameters or all objects if there are no parameters. The default is sorted by ID. The size of the list is
+     * gets a list of objects by {@link ru.clevertec.ecl.service.dto.QueryParamsDto} or all objects if there are no parameters. The default is sorted by ID. The size of the list is
      * determined by the parameters. The default list size and maximum size is defined
      * in @{@link ru.clevertec.ecl.service.util.PagingUtil}
      *

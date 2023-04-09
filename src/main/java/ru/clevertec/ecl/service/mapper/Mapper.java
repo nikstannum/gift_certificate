@@ -20,7 +20,6 @@ import ru.clevertec.ecl.service.dto.UserDto.UserRoleDto;
 @Component
 @RequiredArgsConstructor
 public class Mapper {
-    public static final String PASSWORD_ENCR = "****";
     private final TagMapper tagMapper;
     private final GiftCertificateMapper giftCertificateMapper;
     private final QueryMapper queryMapper;
@@ -45,19 +44,13 @@ public class Mapper {
         return orderInfoMapper.toModel(dto);
     }
 
+
     public User convert(UserDto dto) {
-        UserRole role = convert(dto.getUserRoleDto());
-        User user = userMapper.toModel(dto);
-        user.setUserRole(role);
-        return user;
+        return userMapper.toModel(dto);
     }
 
     public UserDto convert(User entity) {
-        UserRoleDto roleDto = convert(entity.getUserRole());
-        UserDto userDto = userMapper.toDto(entity);
-        userDto.setUserRoleDto(roleDto);
-        userDto.setPassword(PASSWORD_ENCR);
-        return userDto;
+        return userMapper.toDto(entity);
     }
 
     public Order convert(OrderDto dto) {

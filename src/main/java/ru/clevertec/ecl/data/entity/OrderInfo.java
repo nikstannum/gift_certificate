@@ -12,11 +12,14 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.Where;
 
 @Getter
@@ -44,6 +47,10 @@ public class OrderInfo {
     @ManyToOne(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "order_id")
     private Order order;
+
+    @Generated(GenerationTime.INSERT)
+    @Column(name = "create_date", updatable = false, insertable = false)
+    private Instant createDate;
 
     @Transient
     @Column(name = "deleted")

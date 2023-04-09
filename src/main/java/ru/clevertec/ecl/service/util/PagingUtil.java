@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 import ru.clevertec.ecl.data.entity.QueryParams;
 import ru.clevertec.ecl.service.exception.ClientException;
 
+/**
+ * util class to get {@link org.springframework.data.domain.Pageable} based on request parameters
+ */
 @Component
 public class PagingUtil {
 

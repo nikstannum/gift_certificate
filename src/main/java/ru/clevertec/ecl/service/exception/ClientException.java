@@ -2,6 +2,9 @@ package ru.clevertec.ecl.service.exception;
 
 import lombok.Getter;
 
+/**
+ * class of client-side exceptions handled in the application
+ */
 @Getter
 public class ClientException extends ClevertecException {
 
