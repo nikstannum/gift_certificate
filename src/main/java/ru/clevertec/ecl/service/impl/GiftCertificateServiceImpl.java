@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private static final String COMMA = ",";
     private static final String ALIAS_DESCR = "descr";
     private static final String OP_EQ = "eq";
+    private static final String COLUMN_ID = "id";
 
     private final GiftCertificateRepository certificateRepository;
     private final TagRepository tagRepository;
@@ -220,6 +223,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
      */
     @Override
     public Page<GiftCertificateDto> findAll(Pageable pageable) {
+        if(!pageable.getSort().isSorted()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Direction.ASC, COLUMN_ID);
+        }
         Page<GiftCertificate> page = certificateRepository.findAll(pageable);
         return page.map(mapper::convert);
     }

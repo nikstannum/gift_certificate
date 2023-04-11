@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.data.entity.Tag;
 import ru.clevertec.ecl.data.repository.TagRepository;
 import ru.clevertec.ecl.service.TagService;
@@ -38,6 +39,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @Transactional
     public TagDto update(TagDto dto) {
         Tag tag = mapper.convert(dto);
         return mapper.convert(tagRepository.save(tag));
@@ -50,12 +52,14 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @Transactional
     public TagDto create(TagDto dto) {
         Tag tag = mapper.convert(dto);
         return mapper.convert(tagRepository.save(tag));
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         tagRepository.deleteById(id);
     }

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.clevertec.ecl.data.entity.User;
 import ru.clevertec.ecl.data.repository.UserRepository;
 import ru.clevertec.ecl.service.UserService;
@@ -57,6 +58,7 @@ public class UserServiceImpl implements UserService {
      * @return the updated object
      */
     @Override
+    @Transactional
     public UserDto update(UserDto dto) {
         validateUpdate(dto);
         User user = mapper.convert(dto);
@@ -78,6 +80,7 @@ public class UserServiceImpl implements UserService {
      * @return created object
      */
     @Override
+    @Transactional
     public UserDto create(UserDto dto) {
         validateCreate(dto);
         User user = mapper.convert(dto);
@@ -86,11 +89,12 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * delete user by id. If there is no user with this id then an exception will be thrown
+     * delete user by id. If there is no user with this id then an exception will be thrown. Soft delete mechanism implemented
      *
      * @param id object identifier
      */
     @Override
+    @Transactional
     public void delete(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(EXC_MSG_NOT_FOUND_USER_ID + id, CODE_USER_DELETE));

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.clevertec.ecl.service.OrderService;
 import ru.clevertec.ecl.service.UserService;
+import ru.clevertec.ecl.service.dto.OrderCostTimeDto;
 import ru.clevertec.ecl.service.dto.OrderDto;
 import ru.clevertec.ecl.service.dto.UserDto;
 
@@ -27,14 +28,14 @@ public class RestUserController {
     @ResponseBody
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Page<UserDto> findAll(Pageable pageable) {
+    public Page<UserDto> findAllUsers(Pageable pageable) {
         return userService.findAll(pageable);
     }
 
     @ResponseBody
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserDto findById(@PathVariable Long id) {
+    public UserDto findUserById(@PathVariable Long id) {
         return userService.findById(id);
     }
 
@@ -48,7 +49,7 @@ public class RestUserController {
     @ResponseBody
     @GetMapping("/{userId}/orders/{orderId}")
     @ResponseStatus(HttpStatus.OK)
-    public OrderDto findOrderById(@PathVariable Long userId, @PathVariable Long orderId) {
-        return orderService.findOrderByIdByUserId(userId, orderId);
+    public OrderCostTimeDto findUsersOrderById(@PathVariable Long userId, @PathVariable Long orderId) {
+        return orderService.findOrderCostTimeByIdByUserId(userId, orderId);
     }
 }

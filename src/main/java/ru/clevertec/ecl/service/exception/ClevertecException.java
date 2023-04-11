@@ -8,7 +8,7 @@ import lombok.Getter;
 @Getter
 public class ClevertecException extends RuntimeException {
 
-    private final String code;
+    private String code;
 
     public ClevertecException(String message, Throwable cause, String code) {
         super(message, cause);
@@ -18,5 +18,8 @@ public class ClevertecException extends RuntimeException {
     public ClevertecException(String message, String code) {
         super(message);
         this.code = code;
+    }
+
+    public ClevertecException() {
     }
 }

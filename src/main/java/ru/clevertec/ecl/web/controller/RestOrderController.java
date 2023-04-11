@@ -1,5 +1,6 @@
 package ru.clevertec.ecl.web.controller;
 
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,6 +28,7 @@ import ru.clevertec.ecl.service.dto.OrderCreateDto.Item;
 import ru.clevertec.ecl.service.dto.OrderDto;
 import ru.clevertec.ecl.service.dto.OrderInfoDto;
 import ru.clevertec.ecl.service.dto.UserDto;
+import ru.clevertec.ecl.service.exception.ValidationException;
 
 @RestController
 @RequiredArgsConstructor
@@ -50,10 +53,17 @@ public class RestOrderController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<OrderDto> create(@RequestBody OrderCreateDto orderCreateDto) {
+    public ResponseEntity<OrderDto> create(@RequestBody @Valid OrderCreateDto orderCreateDto, Errors errors) {
+        checkErrors(errors);
         OrderDto orderDto = processParams(orderCreateDto);
         OrderDto created = orderService.create(orderDto);
         return buildResponseCreated(created);
+    }
+
+    private void checkErrors(Errors errors) {
+        if (errors.hasErrors()) {
+            throw new ValidationException(errors);
+        }
     }
 
     private ResponseEntity<OrderDto> buildResponseCreated(OrderDto created) {

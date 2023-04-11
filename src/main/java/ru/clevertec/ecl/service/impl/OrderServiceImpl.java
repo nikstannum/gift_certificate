@@ -11,9 +11,12 @@ import ru.clevertec.ecl.data.entity.GiftCertificate;
 import ru.clevertec.ecl.data.entity.Order;
 import ru.clevertec.ecl.data.entity.Order.Status;
 import ru.clevertec.ecl.data.entity.OrderInfo;
+import ru.clevertec.ecl.data.entity.User;
 import ru.clevertec.ecl.data.repository.GiftCertificateRepository;
 import ru.clevertec.ecl.data.repository.OrderRepository;
+import ru.clevertec.ecl.data.repository.UserRepository;
 import ru.clevertec.ecl.service.OrderService;
+import ru.clevertec.ecl.service.dto.OrderCostTimeDto;
 import ru.clevertec.ecl.service.dto.OrderDto;
 import ru.clevertec.ecl.service.exception.NotFoundException;
 import ru.clevertec.ecl.service.mapper.Mapper;
@@ -27,9 +30,14 @@ public class OrderServiceImpl implements OrderService {
     private static final String CODE_ORDER_DELETE = "40444";
     public static final String CODE_FORBID_ORDER_READ = "40342";
     public static final String CODE_ORDER_CREATE_NOT_FOUND = "40441";
+    public static final String CODE_USER_READ = "40432";
+    public static final String EXC_MSG_USER_NOT_FOUND_ID = "wasn't found user with id = ";
+    public static final String EXC_MSG_NOT_FOUND_CERT_ID = "wasn't found certificate with id = ";
+    public static final String CODE_CERT_READ = "40412";
 
     private final OrderRepository orderRepository;
     private final GiftCertificateRepository certificateRepository;
+    private final UserRepository userRepository;
     private final Mapper mapper;
 
     /**
@@ -78,6 +86,15 @@ public class OrderServiceImpl implements OrderService {
         return mapper.convert(order);
     }
 
+    @Override
+    public OrderCostTimeDto findOrderCostTimeByIdByUserId(Long userId, Long orderId) {
+        OrderDto orderDto = findOrderByIdByUserId(userId, orderId);
+        OrderCostTimeDto dto = new OrderCostTimeDto();
+        dto.setTotalCost(orderDto.getTotalCost());
+        dto.setPurchaseTime(orderDto.getDetailsDto().get(0).getCreateDate());
+        return dto;
+    }
+
     /**
      * updates an existing order
      *
@@ -85,6 +102,7 @@ public class OrderServiceImpl implements OrderService {
      * @return updated object
      */
     @Override
+    @Transactional
     public OrderDto update(OrderDto dto) {
         Order order = mapper.convert(dto);
         return mapper.convert(orderRepository.save(order));
@@ -112,8 +130,28 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDto create(OrderDto dto) {
         Order order = prepareOrderCreate(dto);
-        Order created = orderRepository.save(order);
-        return mapper.convert(created);
+        prepareUser(order);
+        prepareCertificate(order);
+        Order created = orderRepository.saveAndFlush(order);
+        Long id = created.getId();
+        return findById(id);
+    }
+
+    private void prepareUser(Order order) {
+        Long userId = order.getUser().getId();
+        User user =  userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(EXC_MSG_USER_NOT_FOUND_ID + userId, CODE_USER_READ));
+        order.setUser(user);
+    }
+
+    private void prepareCertificate(Order order) {
+        List<OrderInfo> details = order.getDetails();
+        for (OrderInfo detail : details) {
+            Long certId = detail.getGiftCertificate().getId();
+            GiftCertificate certificate = certificateRepository.findById(certId)
+                    .orElseThrow(() -> new NotFoundException(EXC_MSG_NOT_FOUND_CERT_ID + certId, CODE_CERT_READ));
+            detail.setGiftCertificate(certificate);
+        }
     }
 
     private Order prepareOrderCreate(OrderDto dto) {
@@ -138,11 +176,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * deletes an existing order. If an order with this ID does not exist, an exception will be thrown
+     * deletes an existing order. If an order with this ID does not exist, an exception will be thrown. Soft delete mechanism implemented
      *
      * @param id object identifier
      */
     @Override
+    @Transactional
     public void delete(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(EXC_MSG_ORDER_NOT_FOUND_ID, CODE_ORDER_DELETE));

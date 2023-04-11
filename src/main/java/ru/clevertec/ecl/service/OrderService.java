@@ -2,6 +2,7 @@ package ru.clevertec.ecl.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import ru.clevertec.ecl.service.dto.OrderCostTimeDto;
 import ru.clevertec.ecl.service.dto.OrderDto;
 
 public interface OrderService extends CrudService<OrderDto, Long> {
@@ -23,4 +24,6 @@ public interface OrderService extends CrudService<OrderDto, Long> {
      * @return the requested order
      */
     OrderDto findOrderByIdByUserId(Long userId, Long orderId);
+
+    OrderCostTimeDto findOrderCostTimeByIdByUserId(Long userId, Long orderId);
 }
