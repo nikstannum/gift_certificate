@@ -25,6 +25,7 @@ import ru.clevertec.ecl.data.entity.GiftCertificate;
 import ru.clevertec.ecl.data.entity.QueryParams;
 import ru.clevertec.ecl.data.entity.Tag;
 import ru.clevertec.ecl.data.repository.GiftCertificateRepository;
+import ru.clevertec.ecl.data.repository.TagRepository;
 import ru.clevertec.ecl.service.dto.GiftCertificateDto;
 import ru.clevertec.ecl.service.dto.QueryParamsDto;
 import ru.clevertec.ecl.service.dto.TagDto;
@@ -53,6 +54,8 @@ class GiftCertificateServiceImplTest {
 
     @Mock
     private GiftCertificateRepository certificateRepository;
+    @Mock
+    private TagRepository tagRepository;
     @Mock
     private CertificateBuilder certificateBuilder;
     @Mock
