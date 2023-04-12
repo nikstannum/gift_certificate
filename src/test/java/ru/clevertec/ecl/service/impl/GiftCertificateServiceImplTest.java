@@ -219,7 +219,7 @@ class GiftCertificateServiceImplTest {
     ArgumentCaptor<Long> captor;
 
     @Test
-    void delete() {
+    void checkDeleteShouldCapture() {
         service.delete(1L);
         Mockito.verify(certificateRepository).deleteById(captor.capture());
         Long actual = captor.getValue();

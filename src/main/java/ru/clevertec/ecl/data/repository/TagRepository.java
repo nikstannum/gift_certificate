@@ -22,7 +22,7 @@ public interface TagRepository extends CrudRepository<Tag, Long>, JpaSpecificati
      * @return the most popular {@link ru.clevertec.ecl.data.entity.Tag} for this user
      */
     @Query(value = """
-            SELECT t.id, t.name, count(t.id) FROM tag t
+            SELECT t.id, t.name FROM tag t
             JOIN certificate_tag ct ON t.id = ct.tag_id
             JOIN gift_certificate gc ON ct.certificate_id = gc.id
             JOIN order_infos oi ON oi.certificate_id = gc.id

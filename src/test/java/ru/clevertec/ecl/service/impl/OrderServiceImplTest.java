@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,11 +52,6 @@ class OrderServiceImplTest {
     private Mapper mapper;
     @InjectMocks
     private OrderServiceImpl service;
-
-
-    @BeforeEach
-    void setUp() {
-    }
 
     @Test
     void checkFindOrdersByUserIdShouldHasSize2() {

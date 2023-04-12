@@ -20,14 +20,14 @@ import ru.clevertec.ecl.service.mapper.Mapper;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    public static final String EXC_MSG_NOT_FOUND_USER_ID = "couldn't found user with id = ";
-    public static final String CODE_USER_READ = "40432";
-    public static final String CODE_USER_DELETE = "40434";
-    public static final String EXC_MSG_NOT_FOUND_USER_EMAIL = "couldn't found user by email = ";
-    public static final String COLUMN_ID = "id";
-    public static final String CODE_USER_CREATE = "40031";
-    public static final String EXC_MSG_USER_EMAIL_EXISTS = "already registered user with email ";
-    public static final String CODE_USER_UPD = "40433";
+    private static final String EXC_MSG_NOT_FOUND_USER_ID = "couldn't found user with id = ";
+    private static final String CODE_USER_READ = "40432";
+    private static final String CODE_USER_DELETE = "40434";
+    private static final String EXC_MSG_NOT_FOUND_USER_EMAIL = "couldn't found user by email = ";
+    private static final String COLUMN_ID = "id";
+    private static final String CODE_USER_CREATE = "40031";
+    private static final String EXC_MSG_USER_EMAIL_EXISTS = "already registered user with email ";
+    private static final String CODE_USER_UPD = "40433";
     private final Mapper mapper;
     private final UserRepository userRepository;
 
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
     private void validateUpdate(UserDto dto) {
         User existing = userRepository.findUserByEmail(dto.getEmail());
         if (existing != null && !existing.getId().equals(dto.getId())) {
-            throw new NotFoundException(EXC_MSG_NOT_FOUND_USER_ID + dto.getId(), CODE_USER_UPD);
+            throw new ClientException(EXC_MSG_USER_EMAIL_EXISTS + dto.getId(), CODE_USER_UPD);
         }
     }
 
@@ -84,8 +84,8 @@ public class UserServiceImpl implements UserService {
     public UserDto create(UserDto dto) {
         validateCreate(dto);
         User user = mapper.convert(dto);
-        User updated = userRepository.save(user);
-        return mapper.convert(updated);
+        User created = userRepository.save(user);
+        return mapper.convert(created);
     }
 
     /**

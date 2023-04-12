@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class User {
     @Convert(converter = UserRoleConverter.class)
     private UserRole userRole;
 
+    @Transient
     @Column(name = "deleted")
     private boolean deleted;
 
