@@ -1,0 +1,14 @@
+DROP DATABASE certificate;
+
+DROP TABLE IF EXISTS certificate_tag;
+DROP TABLE IF EXISTS tag;
+DROP TABLE IF EXISTS order_infos;
+DROP TABLE IF EXISTS gift_certificate;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS role;
+DROP TABLE IF EXISTS status;
+
+DROP FUNCTION IF EXISTS now_utc() CASCADE;
+DROP FUNCTION IF EXISTS trigger_update() CASCADE;
+DROP TRIGGER IF EXISTS last_update_date_changes ON gift_certificate CASCADE
