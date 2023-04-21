@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.service.impl;
+package ru.clevertec.ecl.unit.service.impl;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +24,7 @@ import ru.clevertec.ecl.service.dto.UserDto;
 import ru.clevertec.ecl.service.dto.UserDto.UserRoleDto;
 import ru.clevertec.ecl.service.exception.ClientException;
 import ru.clevertec.ecl.service.exception.NotFoundException;
+import ru.clevertec.ecl.service.impl.UserServiceImpl;
 import ru.clevertec.ecl.service.mapper.Mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.service.impl;
+package ru.clevertec.ecl.unit.service.impl;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -35,6 +35,7 @@ import ru.clevertec.ecl.service.dto.OrderDto.StatusDto;
 import ru.clevertec.ecl.service.dto.OrderInfoDto;
 import ru.clevertec.ecl.service.dto.UserDto;
 import ru.clevertec.ecl.service.exception.NotFoundException;
+import ru.clevertec.ecl.service.impl.OrderServiceImpl;
 import ru.clevertec.ecl.service.mapper.Mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;

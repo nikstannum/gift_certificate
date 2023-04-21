@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.service.impl;
+package ru.clevertec.ecl.unit.service.impl;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +22,7 @@ import ru.clevertec.ecl.data.entity.Tag;
 import ru.clevertec.ecl.data.repository.TagRepository;
 import ru.clevertec.ecl.service.dto.TagDto;
 import ru.clevertec.ecl.service.exception.NotFoundException;
+import ru.clevertec.ecl.service.impl.TagServiceImpl;
 import ru.clevertec.ecl.service.mapper.Mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;

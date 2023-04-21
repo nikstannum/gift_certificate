@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    password: test
+    username: test
+    hikari:
+      maximum-pool-size: 20
+  jpa:
+    show-sql: true
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 50
+  liquibase:
+    enabled: true
+    drop-first: true

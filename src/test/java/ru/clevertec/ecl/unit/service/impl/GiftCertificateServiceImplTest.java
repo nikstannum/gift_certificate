@@ -1,4 +1,4 @@
-package ru.clevertec.ecl.service.impl;
+package ru.clevertec.ecl.unit.service.impl;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -31,6 +31,7 @@ import ru.clevertec.ecl.service.dto.QueryParamsDto;
 import ru.clevertec.ecl.service.dto.TagDto;
 import ru.clevertec.ecl.service.exception.ClientException;
 import ru.clevertec.ecl.service.exception.NotFoundException;
+import ru.clevertec.ecl.service.impl.GiftCertificateServiceImpl;
 import ru.clevertec.ecl.service.mapper.Mapper;
 import ru.clevertec.ecl.service.util.CertificateBuilder;
 import ru.clevertec.ecl.service.util.PagingUtil;

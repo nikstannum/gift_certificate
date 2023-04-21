@@ -184,7 +184,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void delete(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(EXC_MSG_ORDER_NOT_FOUND_ID, CODE_ORDER_DELETE));
+                .orElseThrow(() -> new NotFoundException(EXC_MSG_ORDER_NOT_FOUND_ID + id, CODE_ORDER_DELETE));
         order.setDeleted(true);
         orderRepository.save(order);
     }
