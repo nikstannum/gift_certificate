@@ -228,16 +228,14 @@ class GiftCertificateServiceImplTest {
         assertThat(actual).isEqualTo(1L);
     }
 
-    private TagDto createTagDto(Long id, String name) {
+    private TagDto createTagDto(String name) {
         TagDto tagDto = new TagDto();
-        tagDto.setId(id);
         tagDto.setName(name);
         return tagDto;
     }
 
-    private Tag createTag(Long id, String name) {
+    private Tag createTag(String name) {
         Tag tag = new Tag();
-        tag.setId(id);
         tag.setName(name);
         return tag;
     }
@@ -248,8 +246,8 @@ class GiftCertificateServiceImplTest {
         certificate.setDescription(DESCRIPTION);
         certificate.setDuration(DURATION);
         certificate.setPrice(PRICE);
-        TagDto tag1 = createTagDto(null, TAG_1);
-        TagDto tag2 = createTagDto(null, TAG_2);
+        TagDto tag1 = createTagDto(TAG_1);
+        TagDto tag2 = createTagDto(TAG_2);
         List<TagDto> tags = new ArrayList<>();
         tags.add(tag1);
         tags.add(tag2);
@@ -263,8 +261,8 @@ class GiftCertificateServiceImplTest {
         certificate.setDescription(DESCRIPTION);
         certificate.setDuration(DURATION);
         certificate.setPrice(PRICE);
-        Tag tag1 = createTag(null, TAG_1);
-        Tag tag2 = createTag(null, TAG_2);
+        Tag tag1 = createTag(TAG_1);
+        Tag tag2 = createTag(TAG_2);
         List<Tag> tags = new ArrayList<>();
         tags.add(tag1);
         tags.add(tag2);

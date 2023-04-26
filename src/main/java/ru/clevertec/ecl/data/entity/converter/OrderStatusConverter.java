@@ -24,9 +24,7 @@ public class OrderStatusConverter implements AttributeConverter<Status, Long> {
             case CANCELED -> {
                 return 4L;
             }
-            default -> {
-                throw new IllegalArgumentException(attribute + " not supported");
-            }
+            default -> throw new IllegalArgumentException(attribute + " not supported");
         }
     }
 
@@ -50,9 +48,7 @@ public class OrderStatusConverter implements AttributeConverter<Status, Long> {
             case 4 -> {
                 return Status.CANCELED;
             }
-            default -> {
-                throw new IllegalArgumentException(dbData + " not supported");
-            }
+            default -> throw new IllegalArgumentException(dbData + " not supported");
         }
     }
 }

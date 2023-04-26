@@ -60,8 +60,7 @@ public class RestExceptionAdvice {
     public ValidationResultDto error(ValidationException e) {
         log.error(e);
         Map<String, List<String>> errors = mapErrors(e.getErrors());
-        ValidationResultDto dto = new ValidationResultDto(errors);
-        return dto;
+        return new ValidationResultDto(errors);
     }
 
     private Map<String, List<String>> mapErrors(Errors rawErrors) {

@@ -21,9 +21,7 @@ public class UserRoleConverter implements AttributeConverter<UserRole, Long> {
             case USER -> {
                 return 3L;
             }
-            default -> {
-                throw new IllegalArgumentException(attribute + " not supported");
-            }
+            default -> throw new IllegalArgumentException(attribute + " not supported");
         }
     }
 
@@ -44,9 +42,7 @@ public class UserRoleConverter implements AttributeConverter<UserRole, Long> {
             case 3 -> {
                 return UserRole.USER;
             }
-            default -> {
-                throw new IllegalArgumentException(dbData + " not supported");
-            }
+            default -> throw new IllegalArgumentException(dbData + " not supported");
         }
     }
 }
