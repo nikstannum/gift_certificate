@@ -29,3 +29,12 @@ out/
 /dist/
 /nbdist/
 /.nb-gradle/
+/src/main/generated/ru/clevertec/ecl/service/mapper/GiftCertificateMapperImpl.java
+/gradle/wrapper/gradle-wrapper.jar
+/gradle/wrapper/gradle-wrapper.properties
+/src/main/generated/ru/clevertec/ecl/service/mapper/OrderInfoMapperImpl.java
+/src/main/generated/ru/clevertec/ecl/service/mapper/OrderMapperImpl.java
+/src/main/generated/ru/clevertec/ecl/service/mapper/QueryMapperImpl.java
+/src/main/generated/ru/clevertec/ecl/service/mapper/RoleMapperImpl.java
+/src/main/generated/ru/clevertec/ecl/service/mapper/TagMapperImpl.java
+/src/main/generated/ru/clevertec/ecl/service/mapper/UserMapperImpl.java
