@@ -57,6 +57,8 @@ dependencies {
 
     testImplementation 'org.mockito:mockito-core:5.2.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.2.0'
+
+    testImplementation 'org.hamcrest:hamcrest-core:2.2'
 }
 
 tasks.named('test') {
