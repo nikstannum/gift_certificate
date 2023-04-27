@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @ComponentScan(excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX, pattern = "ru.clevertec.ecl.ContextConfig"))
-@PropertySource("classpath:test.properties")
+@PropertySource("classpath:test.yml")
 @EnableTransactionManagement
 public class TestConfig {
 

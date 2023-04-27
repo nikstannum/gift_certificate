@@ -1,0 +1,3 @@
+jpa:
+    persistence:
+        unit_name: test

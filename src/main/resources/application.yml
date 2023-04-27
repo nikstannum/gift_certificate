@@ -1,0 +1,5 @@
+db:
+    driver: org.postgresql.Driver
+    password: root
+    pool_size: 10
+    user: postgres

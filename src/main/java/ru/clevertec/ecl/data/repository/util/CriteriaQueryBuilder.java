@@ -17,6 +17,9 @@ import ru.clevertec.ecl.data.entity.QueryParams;
 import ru.clevertec.ecl.data.entity.Tag;
 import ru.clevertec.ecl.service.exception.ClientException;
 
+/**
+ * Class for constructing criteria based on the implementation of the Criteria API
+ */
 @Component
 public class CriteriaQueryBuilder {
 
@@ -37,6 +40,14 @@ public class CriteriaQueryBuilder {
     public static final String ATTR_CREATE_DATE = "createDate";
     public static final String ALIAS_DATE = "date";
 
+    /**
+     * A method that builds a typed request to obtain a certificate from the database in accordance
+     * with the {@link jakarta.servlet.http.HttpServletRequest} parameters
+     *
+     * @param manager     interface used to interact with the persistence context
+     * @param queryParams query parameters (mapped named model attribute)
+     * @return interface used to control the execution of typed queries
+     */
     public TypedQuery<GiftCertificate> selectCertificateByParams(EntityManager manager, QueryParams queryParams) {
         CriteriaBuilder cb = manager.getCriteriaBuilder();
         CriteriaQuery<GiftCertificate> criteriaQuery = cb.createQuery(GiftCertificate.class);
@@ -63,6 +74,16 @@ public class CriteriaQueryBuilder {
                 .setMaxResults(getLimit(queryParams));
     }
 
+    /**
+     * a method for setting the sorting criteria and direction
+     *
+     * @param cb                       {@link jakarta.persistence.criteria.CriteriaBuilder} - used to construct criteria queries, compound
+     *                                 selections, expressions, predicates, orderings
+     * @param criteriaQuery            {@link jakarta.persistence.criteria.CriteriaQuery} - interface defines functionality that is specific
+     *                                 to top-level queries.
+     * @param root                     {@link jakarta.persistence.criteria.Root} - a root type in the from clause
+     * @param columnOperationOrderList a list containing lists with sorting criteria and sorting directions
+     */
     private void setSorting(CriteriaBuilder cb, CriteriaQuery<GiftCertificate> criteriaQuery, Root<GiftCertificate> root,
                             List<List<String>> columnOperationOrderList) {
         List<Order> orders = new ArrayList<>();
@@ -83,6 +104,16 @@ public class CriteriaQueryBuilder {
         criteriaQuery.orderBy(orders);
     }
 
+    /**
+     * a method that builds conditions for searching for a certificate by tags
+     *
+     * @param cb                {@link jakarta.persistence.criteria.CriteriaBuilder} - used to construct criteria queries, compound selections,
+     *                          expressions, predicates, orderings
+     * @param root              {@link jakarta.persistence.criteria.Root} - a root type in the from clause
+     * @param tagOperationValue a list containing the attribute of the tag relation by which filtering is carried out, the operation (equals or
+     *                          like) and the value itself (the tag name or part of it)
+     * @return list of the types of a simple or compound predicate: a conjunction or disjunction of restrictions
+     */
     private List<Predicate> getTagPredicate(CriteriaBuilder cb, Root<GiftCertificate> root, List<String> tagOperationValue) {
         List<Predicate> predicates = new ArrayList<>();
         String column = tagOperationValue.get(0);
@@ -97,19 +128,32 @@ public class CriteriaQueryBuilder {
         return predicates;
     }
 
+    /**
+     * @param cb                   {@link jakarta.persistence.criteria.CriteriaBuilder} - used to construct criteria queries, compound selections,
+     *                             expressions, predicates, orderings
+     * @param root                 {@link jakarta.persistence.criteria.Root} - a root type in the from clause
+     * @param columnOperationValue a list containing lists with sorting criteria and sorting directions
+     * @return list of the types of a simple or compound predicate: a conjunction or disjunction of restrictions
+     */
     private List<Predicate> getCertPredicates(CriteriaBuilder cb, Root<GiftCertificate> root, List<List<String>> columnOperationValue) {
         List<Predicate> certPredicates = new ArrayList<>();
         for (List<String> unit : columnOperationValue) {
-            if (unit.get(1).equalsIgnoreCase(OP_LIKE)) {
-                certPredicates.add(cb.like(root.get(unit.get(0)), PATTERN_PERCENT + unit.get(2) + PATTERN_PERCENT));
-            }
             if (unit.get(1).equalsIgnoreCase(OP_EQ)) {
                 certPredicates.add(cb.equal(root.get(unit.get(0)), unit.get(2)));
+            }
+            if (unit.get(1).equalsIgnoreCase(OP_LIKE)) {
+                certPredicates.add(cb.like(root.get(unit.get(0)), PATTERN_PERCENT + unit.get(2) + PATTERN_PERCENT));
             }
         }
         return certPredicates;
     }
 
+    /**
+     * method that collects conditions for filtering when selection a certificate
+     *
+     * @param queryParams query parameters (mapped named model attribute)
+     * @return a list containing lists with sorting criteria and sorting directions
+     */
     private List<List<String>> getCertColumnOperationValueSqlSelect(QueryParams queryParams) {
         String certParams = queryParams.getCert();
         if (certParams == null) {
@@ -131,6 +175,13 @@ public class CriteriaQueryBuilder {
         return listColumnOperationValue;
     }
 
+    /**
+     * method that collects a list of conditions when filtering by tags
+     *
+     * @param queryParams query parameters (mapped named model attribute)
+     * @return a list containing the attribute of the tag relation by which filtering is carried out, the operation (equals or
+     * like) and the value itself (the tag name or part of it)
+     */
     private List<String> getTagColumnOperationValueSelect(QueryParams queryParams) {
         String tagParams = queryParams.getTag();
         if (tagParams == null) {
@@ -144,6 +195,12 @@ public class CriteriaQueryBuilder {
         return listColumnOperationValue;
     }
 
+    /**
+     * method that collects a list of conditions for sorting
+     *
+     * @param queryParams query parameters (mapped named model attribute)
+     * @return a list containing lists with sorting criteria and sorting directions
+     */
     private List<List<String>> getColumnOperationOrder(QueryParams queryParams) {
         String order = queryParams.getOrder();
         if (order == null) {
@@ -162,6 +219,12 @@ public class CriteriaQueryBuilder {
         return list;
     }
 
+    /**
+     * method to provide pagination of data
+     *
+     * @param queryParams query parameters (mapped named model attribute)
+     * @return number of missing elements (elements behind the selection)
+     */
     private int getOffset(QueryParams queryParams) {
         int page;
         String pageStr = queryParams.getPage();
@@ -179,6 +242,12 @@ public class CriteriaQueryBuilder {
         return (page - 1) * limit;
     }
 
+    /**
+     * method to provide pagination of data
+     *
+     * @param queryParams query parameters (mapped named model attribute)
+     * @return data sample size
+     */
     private int getLimit(QueryParams queryParams) {
         int limit;
         String limitStr = queryParams.getSize();

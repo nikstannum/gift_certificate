@@ -52,7 +52,7 @@ public class RestCertificateController {
         giftCertificateService.delete(id);
     }
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<String> create(@ModelAttribute QueryParamsDto paramsDto) {
         GiftCertificateDto created = giftCertificateService.create(paramsDto);
         return buildResponseCreated(created);
@@ -66,7 +66,7 @@ public class RestCertificateController {
         return new ResponseEntity<>(serializer.serialize(updated), headers, HttpStatus.OK);
     }
 
-    @GetMapping()
+    @GetMapping("/params")
     public ResponseEntity<String> findByParams(@ModelAttribute("paramsDto") QueryParamsDto paramsDto) {
         List<GiftCertificateDto> list = giftCertificateService.findByParams(paramsDto);
         HttpHeaders headers = new HttpHeaders();
@@ -74,7 +74,7 @@ public class RestCertificateController {
         return new ResponseEntity<>(serializer.serialize(list), headers, HttpStatus.OK);
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<String> findAll(@RequestParam(required = false) String page, @RequestParam(required = false) String size) {
         QueryParamsDto dto = new QueryParamsDto();
         dto.setPage(page);

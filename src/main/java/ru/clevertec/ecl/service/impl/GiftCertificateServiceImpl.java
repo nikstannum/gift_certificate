@@ -3,6 +3,7 @@ package ru.clevertec.ecl.service.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -97,7 +98,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         if (descrVal == null) {
             return false;
         }
-        String descr = ALIAS_DESCR + COLON + OP_EQ + COLON + descrVal;
+        String descr = String.join(COLON, ALIAS_DESCR, OP_EQ, descrVal);
         QueryParams queryParams = new QueryParams();
         queryParams.setCert(descr);
         List<GiftCertificate> list = certificateRepository.findByParams(queryParams);
@@ -105,7 +106,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     private void updateFields(GiftCertificate fromDb, GiftCertificate certWithAcceptedParams) {
-        if (certWithAcceptedParams.getName() != null) {
+        if (Objects.nonNull(certWithAcceptedParams.getName())) {
             fromDb.setName(certWithAcceptedParams.getName());
         }
         if (certWithAcceptedParams.getDescription() != null) {
@@ -169,7 +170,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     public List<GiftCertificateDto> findByParams(QueryParamsDto paramsDto) {
         QueryParams params = mapper.convert(paramsDto);
         List<GiftCertificate> certificates = certificateRepository.findByParams(params);
-        return certificates.stream().map(mapper::convert).toList();
+        return certificates.stream()
+                .map(mapper::convert)
+                .toList();
     }
 
     @Override
