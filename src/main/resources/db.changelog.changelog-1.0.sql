@@ -1,6 +1,7 @@
 -- liquibase formatted sql
 
 -- changeset create tables:add constraints
+
 CREATE TABLE IF NOT EXISTS gift_certificate (
 	id BIGSERIAL PRIMARY KEY,
 	"name" VARCHAR (30) NOT NULL,
@@ -59,6 +60,34 @@ CREATE TABLE IF NOT EXISTS order_infos (
 	create_date TIMESTAMP (3) WITHOUT time ZONE DEFAULT (now() at time zone 'utc'),
 	deleted BOOLEAN NOT NULL DEFAULT false
 );
+
+-- changeset splitStatements:false
+
+create or replace function now_utc()
+	RETURNS timestamp
+		RETURN now() at time zone 'utc';
+
+create or replace function trigger_update()
+	RETURNS trigger AS $$
+begin
+	if NEW."name" != OLD."name"
+	or NEW.description is DISTINCT FROM OLD.description
+	or NEW.price is DISTINCT FROM OLD.price
+	or NEW.duration != OLD.duration
+	then
+	update gift_certificate
+	set last_update_date = now_utc()
+	where id = OLD.id;
+	end if;
+	return new;
+end;
+$$ LANGUAGE 'plpgsql';
+
+create or replace trigger last_update_date_changes
+	after update
+	on gift_certificate
+	for each row
+	EXECUTE procedure trigger_update();
 
 -- changeset test data:add
 INSERT INTO gift_certificate (name, description, price, duration)
