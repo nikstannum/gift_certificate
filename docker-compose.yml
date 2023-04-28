@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  postgres:
+    image: 'postgres:14-alpine'
+    container_name: 'certificate-postgres'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=certificate
+    volumes:
+      - ./docker/init-db:/docker-entrypoint-initdb.d
+
+  app:
+    build: ./
+    container_name: 'gift_cert'
+    ports:
+      - 8080:8080
